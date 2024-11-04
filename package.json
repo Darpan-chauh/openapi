@@ -1,0 +1,30 @@
+{
+  "name": "nuxt-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@mdi/font": "^7.4.47",
+    "@monaco-editor/loader": "^1.4.0",
+    "axios": "^1.7.7",
+    "js-yaml": "^4.1.0",
+    "lodash": "^4.17.21",
+    "lodash-es": "^4.17.21",
+    "monaco-editor": "^0.52.0",
+    "monaco-editor-vue3": "^0.1.10",
+    "nuxt": "^3.13.0",
+    "prismjs": "^1.29.0",
+    "vue": "latest",
+    "vue-router": "latest"
+  },
+  "devDependencies": {
+    "vite-plugin-vuetify": "^2.0.4",
+    "vuetify": "^3.7.2"
+  }
+}
