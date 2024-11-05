@@ -2,8 +2,10 @@
   <div class="editor-wrapper">
     <div class="toolbar">
       <button class="theme-button" @click="toggleTheme">Theme</button>
-      <button class="font-button" @click="increaseFontSize">+ Font</button>
-      <button class="font-button" @click="decreaseFontSize">- Font</button>
+      <div class="font-buttons">
+        <button class="font-button" @click="increaseFontSize">+</button>
+        <button class="font-button" @click="decreaseFontSize">-</button>
+      </div>
     </div>
     <div class="editor-container" ref="editorContainer"></div>
   </div>
@@ -63,12 +65,9 @@ onMounted(async () => {
     editorInstance = monaco.editor.create(editorContainer.value, {
       value: props.modelValue,
       language: 'yaml',
-      
       theme: getCurrentTheme(),
       wordWrap: 'on',
       fontSize: fontSize.value,
-  
-      
     });
 
     editorInstance.onDidChangeModelContent(() => {
@@ -115,15 +114,20 @@ function getCurrentTheme() {
 
 .toolbar {
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between; /* Space between buttons */
+  align-items: center; /* Center vertically */
   padding: 10px;
-  background: linear-gradient(90deg, #531e08, #ec4a4a); /* Gradient for the toolbar */
+  background: linear-gradient(90deg, #f09974, #e4a085); /* Gradient for the toolbar */
   border-bottom: 2px solid #d0d0d0;
+}
+
+.font-buttons {
+  display: flex;
 }
 
 .theme-button, .font-button {
   margin-right: 10px;
-  padding: 6px 16px; /* Increased padding for a more substantial button */
+  padding: 6px 10px; /* Adjusted padding for buttons */
   border: none;
   border-radius: 4px; /* Rounded corners */
   background: linear-gradient(90deg, #e7583e, #f0692a); /* Gradient background */

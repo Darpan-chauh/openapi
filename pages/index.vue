@@ -1,137 +1,140 @@
 <template>
   <v-app>
     <v-container fluid>
-      <h1 class="text-center mb-4" style="color: #1976d2;">OpenAPI YAML File Uploader</h1>
-      <v-file-input label="Upload OpenAPI YAML File" accept=".yaml,.yml" @change="onFileChange" outlined class="mb-4"
-        style="background-color: #f5f5f5; border-radius: 8px;" />
+      <!-- Header -->
+      <h1 class="text-center mb-4" style="color: #FF5733; font-weight: bold; font-size: 2.5em;">
+        OpenAPI YAML File Uploader
+      </h1>
+      <v-select v-model="selectedUploadType" :items="uploadOptions" item-title="name" item-value="value"
+        label="Select Upload Type" outlined class="mb-4"
+        style="background-color: #ffffff; border-radius: 8px; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);" />
 
-      <v-card v-if="parsedContent" class="mt-5" elevation="10" style="border-radius: 15px;">
+        
+      <div v-if="selectedUploadType === 'file'">
+        <v-file-input label="Upload OpenAPI YAML File" accept=".yaml,.yml" @change="onFileChange" outlined class="mb-4"
+          style="background-color: #ffffff; border-radius: 8px; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);" />
+      </div>
+
+      <div v-else-if="selectedUploadType === 'url'">
+        <v-text-field v-model="apiUrl" label="Enter URL of OpenAPI YAML" outlined class="mb-4"
+          style="background-color: #ffffff; border-radius: 8px; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);" />
+        <v-btn @click="loadFromUrl" color="primary">Load from URL</v-btn>
+      </div>
+
+      <div v-else-if="selectedUploadType === 'git'">
+        <v-text-field v-model="gitLink" label="Enter Git Repository Link" outlined class="mb-4"
+          style="background-color: #ffffff; border-radius: 8px; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);" />
+        <v-btn @click="loadFromGit" color="primary">Load from Git</v-btn>
+      </div>
+
+
+
+
+      <!-- Main Content Card -->
+      <v-card v-if="parsedContent" class="mt-5" elevation="10" style="border-radius: 15px; padding: 20px;">
         <v-card-text>
-          <v-tabs v-model="activeSection" background-color="white" color="primary" class="rounded-0" dark>
-            <v-tab value="ApiInfo" class="rounded">API Info</v-tab>
-            <v-tab value="servers" class="rounded">Servers</v-tab>
-            <v-tab value="paths" class="rounded">Paths</v-tab>
-            <v-tab value="contacts" class="rounded">Contacts</v-tab>
-            <v-tab value="tagGroups" class="rounded">Tag Groups</v-tab>
-            <v-tab value="webhooks" class="rounded">Webhooks</v-tab>
-            <v-tab value="code" class="rounded">Code</v-tab>
-            <v-tab value="overview" class="rounded">Overview</v-tab>
-
-
+          <!-- Tabs Navigation -->
+          <v-tabs v-model="activeSection" background-color="#f2f2f2" color="primary" class="rounded-0 px-2 py-1" dark>
+            <v-tab value="ApiInfo" class="rounded font-weight-bold text-body-1">API Info</v-tab>
+            <v-tab value="servers" class="rounded font-weight-bold text-body-1">Servers</v-tab>
+            <v-tab value="paths" class="rounded font-weight-bold text-body-1">Paths</v-tab>
+            <v-tab value="contacts" class="rounded font-weight-bold text-body-1">Contacts</v-tab>
+            <v-tab value="tagGroups" class="rounded font-weight-bold text-body-1">Tag Groups</v-tab>
+            <v-tab value="webhooks" class="rounded font-weight-bold text-body-1">Webhooks</v-tab>
+            <v-tab value="code" class="rounded font-weight-bold text-body-1">Code</v-tab>
+            <v-tab value="overview" class="rounded font-weight-bold text-body-1">Overview</v-tab>
           </v-tabs>
 
-          <!-- Editable section for API Information -->
+          <!-- API Info Section -->
           <div v-if="activeSection === 'ApiInfo'">
-            <v-card class="api-info-card" elevation="2">
+            <v-card class="api-info-card mt-4" elevation="2"
+              style="background-color: #f9f9f9; padding: 20px; border-radius: 12px;">
               <v-card-text>
-                <h3 style="color: #1976d2; text-align: center; font-weight: bold;">
+                <div class="api-info-header mb-4 text-center">
                   <v-text-field v-model="apiInfo.title" label="API Title" outlined hide-details prepend-icon="mdi-api"
-                    class="api-title"></v-text-field>
-                </h3>
+                    class="api-title font-weight-bold text-center" style="color: #FF5733; font-size: 1.4em;" />
+                </div>
 
-                <div class="api-info-row">
-                  <strong>Version:</strong>
+                <div class="api-info-row mb-3" style="display: flex; align-items: center;">
+                  <strong style="color: #666; width: 19px; font-size: 1.1em;"></strong>
                   <v-text-field v-model="apiInfo.version" label="Version" outlined hide-details
-                    prepend-icon="mdi-information-outline" class="api-version"></v-text-field>
+                    prepend-icon="mdi-information-outline" class="api-version" style="flex: 1;" />
                 </div>
 
                 <div class="api-info-row">
-                  <strong>Description:</strong>
-                  <v-textarea v-model="apiInfo.description" label="Description" outlined hide-details rows="20"
-                    class="api-description" prepend-icon="mdi-comment-text-outline"></v-textarea>
+                  <strong style="color: #666; font-size: 1.1em;">Description:</strong>
+                  <div class="description-markdown mt-2"
+                    style="background-color: #ffffff; padding: 24px; border-radius: 7px; border: 1px solid #ddd;">
+                    <Markdown :markdown="apiInfo.description" />
+                  </div>
                 </div>
               </v-card-text>
             </v-card>
           </div>
 
 
+
+
+
           <div v-if="activeSection === 'servers'">
-  <h2 class="text-h5" style="color: #1976d2;">Servers</h2>
+            <h2 class="text-h5" style="color: #FF5733;"></h2>
 
-  <v-btn @click="showingAddServer = true" color="primary" class="mb-2">
-    Add Server
-  </v-btn>
+            <v-btn @click="showingAddServer = true" class="custom-btn mb-2">
+              Add Server
+            </v-btn>
 
-  <!-- Dialog for Adding/Editing Server -->
-  <v-dialog v-model="showingAddServer" max-width="600px" transition="dialog-bottom-transition">
-    <v-card>
-      <v-card-title class="headline" style="color: #1976d2; font-weight: bold; font-size: 1.5rem;">
-        <v-icon left>{{ isEditing ? 'mdi-pencil' : 'mdi-plus' }}</v-icon>
-        {{ isEditing ? 'Edit Server' : 'Add Server' }}
-      </v-card-title>
-      <v-card-text>
-        <v-text-field
-          v-model="serverForm.url"
-          label="Server URL"
-          outlined
-          dense
-          placeholder="Enter server URL"
-          prepend-icon="mdi-link"
-          clearable
-          class="mb-3"
-        />
-        <v-text-field
-          v-model="serverForm.description"
-          label="Description"
-          outlined
-          dense
-          placeholder="Enter description"
-          prepend-icon="mdi-comment"
-          clearable
-        />
-      </v-card-text>
-      <v-card-actions>
-        <!-- Update Server Button with Delete Button Styles -->
-        <v-btn
-          @click="isEditing ? updateServer() : addServer()"
-          color="red"  
-          elevation="2"
-          style="border-radius: 25px; background-color: #FFCDD2; color: #D32F2F; border: 1px solid #FFCDD2;"
-        >
-          <v-icon left>{{ isEditing ? 'mdi-content-save' : 'mdi-plus' }}</v-icon>
-          {{ isEditing ? 'Update Server' : 'Save Server' }}
-        </v-btn>
-        <v-btn @click="showingAddServer = false" color="secondary" outlined style="border-radius: 25px;">
-          <v-icon left>mdi-cancel</v-icon>
-          Cancel
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+            <!-- Dialog for Adding/Editing Server -->
+            <v-dialog v-model="showingAddServer" max-width="600px" transition="dialog-bottom-transition">
+              <v-card>
+                <v-card-title class="headline" style="color: #FF5733; font-weight: bold; font-size: 1.5rem;">
+                  <v-icon left>{{ isEditing ? 'mdi-pencil' : 'mdi-plus' }}</v-icon>
+                  {{ isEditing ? 'Edit Server' : 'Add Server' }}
+                </v-card-title>
+                <v-card-text>
+                  <v-text-field v-model="serverForm.url" label="Server URL" outlined dense
+                    placeholder="Enter server URL" prepend-icon="mdi-link" clearable class="mb-3" />
+                  <v-text-field v-model="serverForm.description" label="Description" outlined dense
+                    placeholder="Enter description" prepend-icon="mdi-comment" clearable />
+                </v-card-text>
+                <v-card-actions>
+                  <!-- Update Server Button with Delete Button Styles -->
+                  <v-btn @click="isEditing ? updateServer() : addServer()" color="red" elevation="2"
+                    style="border-radius: 25px; background-color: #FFCDD2; color: #FF5733; border: 1px solid #FFCDD2;">
+                    <v-icon left>{{ isEditing ? 'mdi-content-save' : 'mdi-plus' }}</v-icon>
+                    {{ isEditing ? 'Update Server' : 'Save Server' }}
+                  </v-btn>
+                  <v-btn @click="showingAddServer = false"
+                    style="border-radius: 25px; background-color: #FF5733; color: white;">
+                    <v-icon left>mdi-cancel</v-icon>
+                    <span style="font-weight: bold;">Cancel</span>
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
 
-  <v-data-table :headers="serverHeaders" :items="servers" hide-default-footer class="elevation-1 mb-4" dense>
-    <template v-slot:item.actions="{ item, index }">
-      <!-- Updated Edit Button -->
-      <button
-        type="button"
-        aria-label="Edit Server"
-        @click="editServer(index)"
-        class="v-btn v-btn--icon v-btn--outlined v-btn--tile"
-        style="background-color: #BBDEFB; border-radius: 25px; color: #1976D2; border: 1px solid #BBDEFB;"
-      >
-        <v-icon size="24">mdi-pencil</v-icon>
-      </button>
+            <v-data-table :headers="serverHeaders" :items="servers" hide-default-footer class="elevation-1 mb-4" dense>
+              <template v-slot:item.actions="{ item, index }">
+                <!-- Updated Edit Button -->
+                <button type="button" aria-label="Edit Server" @click="editServer(index)"
+                  class="v-btn v-btn--icon v-btn--outlined v-btn--tile"
+                  style="background-color: white; border-radius: 25px; color: #FF5733;">
+                  <v-icon size="24">mdi-pencil</v-icon>
+                </button>
 
-      <!-- Updated Delete Button -->
-      <button
-        type="button"
-        aria-label="Delete Server"
-        @click="removeServer(index)"
-        class="v-btn v-btn--icon v-btn--outlined v-btn--tile"
-        style="background-color: #FFCDD2; border-radius: 25px; color: #D32F2F; border: 1px solid #FFCDD2;"
-      >
-        <v-icon size="24">mdi-delete</v-icon>
-      </button>
-    </template>
-  </v-data-table>
-</div>
-
-
+                <!-- Updated Delete Button -->
+                <button type="button" aria-label="Delete Server" @click="removeServer(index)"
+                  class="v-btn v-btn--icon v-btn--outlined v-btn--tile"
+                  style="background-color: white; border-radius: 25px; color: #D32F2F; border: 0px solid #FFCDD2;">
+                  <v-icon size="24">mdi-delete</v-icon>
+                </button>
+              </template>
+            </v-data-table>
+          </div>
 
 
           <!-- Content for Paths -->
           <div v-if="activeSection === 'paths'" class="path-section">
-            <h2 class="text-h5" style="color: #1976d2; margin-bottom: 20px;">Paths</h2>
+            <h2 class="text-h5" style="color: #FF5733 ; margin-bottom: 20px;"></h2>
 
             <div v-for="(path, index) in apiPaths" :key="index"
               class="path-item mb-4 border rounded-lg p-4 shadow-lg bg-white">
@@ -175,9 +178,10 @@
                   </div>
 
                   <!-- Button to show form for adding query parameter -->
-                  <v-btn @click="toggleAddQueryParamForm(index)" color="primary" small>
-                    {{ showAddQueryParamForm[index] ? 'Cancel' : 'Add Query ' }}
+                  <v-btn @click="toggleAddQueryParamForm(index)" style="background-color: #FF5733; color: white;" small>
+                    {{ showAddQueryParamForm[index] ? 'Cancel' : 'Add Query' }}
                   </v-btn>
+
 
                   <!-- Form to add new query parameter -->
                   <v-expand-transition>
@@ -212,14 +216,16 @@
                     <v-select v-model="header.type" :items="headerTypes" label="Type" outlined />
                     <v-textarea v-model="header.description" label="Description" outlined />
                     <v-btn @click="removeHeader(index, headerIndex)" icon>
-                      <v-icon color="red">mdi-delete</v-icon>
+                      <v-icon style="color: #FF5733;">mdi-delete</v-icon>
                     </v-btn>
+
                   </div>
 
                   <!-- Button to show form for adding header -->
-                  <v-btn @click="toggleAddHeaderForm(index)" color="primary" small>
+                  <v-btn @click="toggleAddHeaderForm(index)" style="background-color: #FF5733; color: white;" small>
                     {{ showAddHeaderForm[index] ? 'Cancel' : 'Add Header' }}
                   </v-btn>
+
 
                   <!-- Form to add new header -->
                   <v-expand-transition>
@@ -246,7 +252,7 @@
             </div>
 
             <!-- Add Path Form -->
-            <v-btn @click="toggleAddPath" color="primary" class="mb-2">
+            <v-btn @click="toggleAddPath" style="background-color: #FF5733; color: white;" class="mb-2">
               {{ showingAddPath ? 'Cancel' : 'Add Path' }}
             </v-btn>
 
@@ -292,7 +298,7 @@
 
           <!-- Content for Contacts -->
           <div v-if="activeSection === 'contacts'">
-            <h2 class="text-h5" style="color: #1976d2;">Contacts</h2>
+            <h2 class="text-h5" style="color: #FF5733 ;"></h2>
             <v-card elevation="2" class="mb-3" style="border-radius: 10px;">
               <v-card-text>
                 <v-row>
@@ -314,10 +320,11 @@
 
           <!-- Content for Tag Groups -->
           <div v-if="activeSection === 'tagGroups'">
-            <h2 class="text-h5" style="color: #1976d2;">Tag Groups</h2>
-            <v-btn @click="toggleAddTagGroup" color="primary" class="mb-2">
+            <h2 class="text-h5" style="color: #FF5733;"></h2>
+            <v-btn @click="toggleAddTagGroup" style="background-color: #FF5733; color: white;" class="mb-2">
               {{ showingAddTagGroup ? 'Cancel' : 'Add Tag Group' }}
             </v-btn>
+
             <div v-if="showingAddTagGroup" class="mb-3">
               <v-text-field v-model="newTagGroup.name" label="Tag Group Name" outlined />
               <v-text-field v-model="newTagGroup.tags" label="Tags (comma separated)" outlined class="mt-2" />
@@ -336,10 +343,11 @@
 
           <!-- Content for Webhooks -->
           <div v-if="activeSection === 'webhooks'">
-            <h2 class="text-h5" style="color: #1976d2;">Webhooks</h2>
-            <v-btn @click="toggleAddWebhook" color="primary" class="mb-2">
+            <h2 class="text-h5" style="color: #FF5733;"></h2>
+            <v-btn @click="toggleAddWebhook" style="background-color: #FF5733; color: white;" class="mb-2">
               {{ showingAddWebhook ? 'Cancel' : 'Add Webhook' }}
             </v-btn>
+
             <div v-if="showingAddWebhook" class="mb-3">
               <v-text-field v-model="newWebhook.name" label="Webhook Name" outlined />
               <v-text-field v-model="newWebhook.summary" label="Summary" outlined class="mt-2" />
@@ -390,7 +398,7 @@
               </div>
               <div>
                 <strong>Description:</strong>
-                <v-textarea v-model="apiInfo.description" outlined readonly rows="5"></v-textarea>
+                <v-textarea v-model="apiInfo.description" outlined readonly rows="12"></v-textarea>
               </div>
             </v-card-text>
           </v-card>
@@ -440,6 +448,41 @@ const showingAddPath = ref(false);
 const activePathIndex = ref(null);
 
 
+// Reactive variables for dropdown options
+const selectedUploadType = ref(null);
+const uploadOptions = ref([
+  { name: 'Upload YAML File', value: 'file' },
+  { name: 'Enter URL', value: 'url' },
+  { name: 'Enter Git Link', value: 'git' },
+]);
+const apiUrl = ref('');
+const gitLink = ref('');
+
+
+
+// Function to load YAML from a URL
+const loadFromUrl = async () => {
+  try {
+    const response = await fetch(apiUrl.value);
+    if (!response.ok) throw new Error('Network response was not ok');
+    rawYAML.value = await response.text(); // Update rawYAML with fetched content
+  } catch (error) {
+    console.error('Error loading from URL:', error);
+  }
+};
+
+// Function to load YAML from a Git link
+const loadFromGit = async () => {
+  try {
+    const response = await fetch(gitLink.value);
+    if (!response.ok) throw new Error('Network response was not ok');
+    rawYAML.value = await response.text(); // Update rawYAML with fetched content
+    console.log('YAML content loaded from Git:', rawYAML.value);
+  } catch (error) {
+    console.error('Error loading from Git:', error);
+  }
+};
+
 
 
 // Watch for changes in rawYAML and update parsedContent
@@ -453,7 +496,7 @@ watch(rawYAML, (newVal) => {
 });
 
 const togglePathDetails = (index) => {
-  // Toggle the active path index to show/hide details
+
   activePathIndex.value = activePathIndex.value === index ? null : index;
 };
 
@@ -524,7 +567,7 @@ const resetNewPathForm = () => {
 
 // Watch for changes in apiPaths to update YAML
 watch(apiPaths, () => {
-  updateYAML();  // Call this function to update the YAML whenever apiPaths changes
+  updateYAML();
 }, { deep: true });
 
 
@@ -727,8 +770,6 @@ const removeServer = (index) => {
   updateYAML();
 };
 
-
-
 // Function to edit a server
 const editServer = (index) => {
   isEditing.value = true;
@@ -801,13 +842,7 @@ const webhookHeaders = [
   { text: 'Summary', value: 'summary' }
 ];
 
-// Overview items for display
-const overviewItems = ref([
-  { title: 'File Upload', subtitle: 'Upload your OpenAPI YAML file to get started.', icon: 'mdi-upload' },
-  { title: 'Server Management', subtitle: 'Add and manage your API servers.', icon: 'mdi-server' },
-  { title: 'Paths Overview', subtitle: 'View and manage API paths and their methods.', icon: 'mdi-road' },
-  { title: 'Webhooks', subtitle: 'Configure webhooks for your API.', icon: 'mdi-webhook' }
-]);
+
 
 // Define contact fields for reactive data
 const contactFields = [
@@ -829,6 +864,22 @@ const contactFields = [
   border: 1px solid rgba(0, 0, 0, 0.2);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.description-markdown ::v-deep {
+  font-size: 1.9em;
+}
+
+.description-markdown ::v-deep h1 {
+  font-size: 1.4em;
+}
+
+.description-markdown ::v-deep h2 {
+  font-size: 1.1em;
+}
+
+.description-markdown ::v-deep p {
+  font-size: 1em;
 }
 
 .monaco-textarea:focus {
@@ -878,6 +929,12 @@ const contactFields = [
   /* Default size for method details */
 }
 
+.custom-btn {
+  background-color: #FF5733 !important;
+  /* Use !important if Vuetify styles override */
+  color: white;
+  /* Change text color if needed */
+}
 
 /* Edit button specific styles */
 .edit-button {
@@ -917,6 +974,17 @@ const contactFields = [
   overflow: hidden;
 }
 
+.custom-tabs {
+  background-color: #FF5733 !important;
+  /* Use !important if Vuetify styles are overriding */
+}
+
+.custom-btn {
+  background-color: #FF5733;
+  color: white;
+  /* Adjust the text color if needed */
+}
+
 /* VS Code-like Toolbar */
 .vs-code-toolbar {
   background-color: #252526;
@@ -953,7 +1021,69 @@ const contactFields = [
   line-height: 1.5;
 }
 
+.file-input {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+}
 
+/* Main Content Card */
+.content-card {
+  border-radius: 15px;
+  padding: 20px;
+}
+
+/* Tabs Navigation */
+.tabs-navigation {
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+/* Individual Tab Styling */
+.tab-item {
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+/* API Info Card Styling */
+.api-info-card {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Header Styling for Title */
+.api-info-header {
+  color: #ff5733;
+  font-weight: bold;
+  text-align: center;
+  font-size: 1.5em;
+  margin-bottom: 20px;
+}
+
+/* Row Styling for Version and Description */
+.api-info-row {
+  margin: 15px 0;
+  font-size: 1.1em;
+}
+
+.label {
+  color: #666;
+  font-weight: bold;
+}
+
+/* Markdown Description Styling */
+.description-markdown {
+  background-color: #ffffff;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  box-shadow: inset 0px 4px 8px rgba(0, 0, 0, 0.05);
+  font-size: 1.1em;
+  color: #333;
+}
 
 /* Code Editor Textarea Styling */
 .vs-code-textarea {
@@ -1037,4 +1167,6 @@ const contactFields = [
   opacity: 1;
   transform: translateY(0);
 }
+
+
 </style>
