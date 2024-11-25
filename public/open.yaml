@@ -1,0 +1,4349 @@
+openapi: 3.0.1
+servers:
+  - url: 'https://api-staging.fareyeconnect.com'
+    description: Staging
+  - url: 'https://api-uat.fareyeconnect.com'
+    description: UAT
+  - url: 'https://api-us.fareyeconnect.com'
+    description: US
+  - url: 'https://api-eu.fareyeconnect.com'
+    description: EU
+  - url: 'https://api-sg.fareyeconnect.com'
+    description: SG
+  - url: 'https://api-au.fareyeconnect.com'
+    description: AU
+  - url: 'https://api-ca.fareyeconnect.com'
+    description: CA
+  - url: 'https://api-in.fareyeconnect.com'
+    description: IN
+info:
+  description: |-
+    # Overview    
+    This API document provides a comprehensive guide for integrating client systems with the FarEye delivery platform. It details the key APIs and their functions, aimed at optimizing delivery operations, improving visibility, enhancing efficiency, and ensuring cost-effectiveness. By clearly defining integration points, the document enables seamless communication and data exchange between client systems and the FarEye platform.
+
+    The APIs covered in this document include:
+
+    - Get Serviceability
+    - Create, Update, and Cancel Consignments
+    - Get and Reserve Slot
+    - Route Plan Details
+    - Status Update (Track and Trace)
+    - Users
+
+    # Authentication
+
+    Raise a request on integration@fareye.com or submit a support query here to provide bearer token.
+  version: v1
+  title: FarEye API Specification
+  x-logo:
+    url: ../resources/Fareye-logo.jpg
+  contact:
+    url: 'https://fareye.com/'
+    name: FarEye Integration Team
+    email: integration@fareye.com
+tags:
+  - name: Serviceability
+    x-displayName: Serviceability
+    description: Fetch and Reserve serviceability for the consignment
+  - name: Slot
+    x-displayName: Slot
+    description: Fetch and Reserve delivery slot for the consignment
+  - name: Consignment
+    x-displayName: Consignment
+    description: 'Create, Update and Cancel Consignment'
+  - name: Route Plan
+    x-displayName: Route Plan
+  - name: Track & Trace
+    x-displayName: Track & Trace
+  - name: Users
+    x-displayName: Users
+x-tagGroups:
+  - name: Ship
+    tags:
+      - Serviceability
+      - Consignment
+  - name: Route
+    tags:
+      - Slot
+      - Route Plan
+  - name: Track
+    tags:
+      - Track & Trace
+  - name: Users Management
+    tags:
+      - Users
+paths:
+  '/{version}/serviceability':
+    post:
+      summary: Serviceability
+      description: 'The API provides functionality to retrieve serviceable carriers and rates for outsourced fleets, allowing businesses to access real-time information on available shipping carriers and their associated costs. This ensures that customers receive accurate and current shipping options and pricing based on factors like delivery location, package weight, and service levels.'
+      tags:
+        - Serviceability
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              x-examples:
+                Example 1:
+                  shipFrom:
+                    address:
+                      code: JB-137
+                      city: Elizabeth
+                      state: SA
+                      pincode: '5039'
+                      county: ''
+                      country: Australia
+                  shipTo:
+                    address:
+                      code: JB-137
+                      city: Elizabeth
+                      state: SA
+                      pincode: '5000'
+                      county: Elizabeth
+                      country: 'Australia '
+                  consignmentDetails:
+                    referenceNumber: REF123456
+                    consignmentType: Standard
+                    totalWeight: 10
+                    totalVolume: 0.75
+                    paymentType: Prepaid
+                    serviceType: eParcel
+                    orderAmount: 500
+                    codAmount: 0
+                    shipByDate: '2024-08-12'
+                    packageDetails:
+                      - length: 10
+                        width: 5
+                        height: 8
+                        weight: 6
+                        volume: 0.4
+                        packageValue: 100
+                        storageDays: 5
+                        serviceabilityFilters:
+                          packageType: Carton
+                          businessUnit: JBH
+              required:
+                - shipFrom
+                - shipTo
+                - consignmentDetails
+              properties:
+                shipFrom:
+                  type: object
+                  description: Origin Details(Address indicating shipment's origin)
+                  required:
+                    - address
+                  properties:
+                    address:
+                      $ref: '#/components/schemas/serviceableaddress'
+                shipTo:
+                  type: object
+                  description: Destination Details / Customer Details (Address indicating shipment's destination)
+                  required:
+                    - address
+                  properties:
+                    address:
+                      $ref: '#/components/schemas/serviceableaddress'
+                consignmentDetails:
+                  type: object
+                  description: Consignment details
+                  required:
+                    - referenceNumber
+                    - consignmentType
+                    - totalWeight
+                    - shipByDate
+                    - packageDetails
+                  properties:
+                    referenceNumber:
+                      type: string
+                      description: Unqiue system identifier
+                      example: MBFE004
+                    consignmentType:
+                      description: |-
+                        The default consignments include Forward, Reverse, and Exchange.  
+                        Note: Additional types can be added in the master list based on client requirements.
+                      enum:
+                        - Forward
+                        - Reverse
+                        - Exchange
+                        - Transfer
+                        - Service
+                      default: Forward
+                      example: Forward
+                    totalWeight:
+                      type: number
+                      description: Total weight of consignment.
+                      example: 12.01
+                    totalVolume:
+                      type: number
+                      description: Total volume of consignment.
+                      example: 12312.12
+                    paymentType:
+                      type: string
+                      description: 'Payment type i.e COD, Prepaid'
+                      example: PREPAID
+                    serviceType:
+                      type: string
+                      description: Service type
+                      example: Express
+                    orderAmount:
+                      type: number
+                      description: Order amount
+                      example: 12.12
+                    codAmount:
+                      type: number
+                      description: Amount to be collected.
+                    shipByDate:
+                      type: string
+                      description: The date the order is to be shipped or dispatch before or on. This field is a suggested value generated by the order source/platform/cart and passed to FarEye.
+                      format: date
+                      example: '2024-07-30'
+                    packageDetails:
+                      type: array
+                      description: Package or container details.
+                      items:
+                        type: object
+                        required:
+                          - length
+                          - width
+                          - height
+                          - weight
+                        properties:
+                          length:
+                            type: number
+                            description: Length of package.
+                            example: 12.11
+                          width:
+                            type: number
+                            description: Width of package.
+                            example: 5.12
+                          height:
+                            type: number
+                            description: Hieght of package.
+                            example: 5.12
+                          weight:
+                            type: number
+                            description: Weight of package.
+                            example: 12.12
+                          volume:
+                            type: number
+                            description: Volume of package.
+                            example: 1233.11
+                          packageValue:
+                            type: number
+                            description: Value or amount of package.
+                          serviceabilityFilters:
+                            type: object
+                            description: The serviceability filter will use in carrier allocation to provide the best fit cariers.
+                            properties:
+                              packageType:
+                                type: string
+                                description: 'Type of package i.e Carton, BOX, etc.'
+                                example: Carton
+                              businessUnit:
+                                type: string
+                                description: Business unit
+                                example: NZZ
+            examples:
+              Example 1:
+                value:
+                  shipFrom:
+                    address:
+                      code: JB-137
+                      city: Elizabeth
+                      state: SA
+                      pincode: '5039'
+                      county: ''
+                      country: Australia
+                  shipTo:
+                    address:
+                      code: JB-137
+                      city: Elizabeth
+                      state: SA
+                      pincode: '5000'
+                      county: Elizabeth
+                      country: Australia
+                  consignmentDetails:
+                    referenceNumber: REF123456
+                    consignmentType: Forward
+                    totalWeight: 10
+                    totalVolume: 0.75
+                    paymentType: Prepaid
+                    serviceType: Express
+                    orderAmount: 500
+                    codAmount: 0
+                    shipByDate: '2024-08-12'
+                    packageDetails:
+                      - length: 10
+                        width: 5
+                        height: 8
+                        weight: 6
+                        volume: 0.4
+                        packageValue: 100
+                        storageDays: 5
+                        serviceabilityFilters:
+                          packageType: Carton
+                          businessUnit: JBH
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    referenceNumber: '127121232'
+                    timestamp: '2024-07-17T13:23:55.490508'
+                    status: OK
+                    carriers:
+                      - name: DHL-EXPRESS
+                        code: DHL-EXPRESS
+                        rank: 1
+                        rate:
+                          totalAmount: 34
+                          currency: GBP
+                          breakUp:
+                            freightCharge: 32
+                            additionalCharges:
+                              - amount: 2
+                                chargeHead: Fuel Surcharge
+                          uuid: 2e086999-eeba-4f5d-94d3-3a2b7673a6bc
+                        score: 0
+                        outputTags: {}
+                        matchingOdPair:
+                          originPostalcode: '10001'
+                          destinationPostalcode: '76064'
+                        serviceCode: '06'
+                        serviceType: FIRST_OVERNIGHT
+                        serviceName: FedEx First Overnight®
+                        shipTime: '2023-06-01 00:00:00'
+                        deliveryTime: '2023-06-05 12:00:00'
+                        cutoffTime: '2023-06-01 17:00:00'
+                        deliveryDay: MON
+                        totalTransitDays: 5
+                        tatUnit: DAY
+                        tatValue: 2
+                required:
+                  - referenceNumber
+                  - timestamp
+                  - status
+                  - carriers
+                properties:
+                  referenceNumber:
+                    type: string
+                    example: '9893121021'
+                    description: Unique system identifer
+                  timestamp:
+                    type: string
+                    description: Current timestamp
+                  status:
+                    type: string
+                    description: HTTP status name
+                    example: OK
+                  carriers:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - name
+                        - code
+                        - rank
+                        - serviceType
+                      properties:
+                        name:
+                          type: string
+                          description: Carrier name
+                          example: Fedex
+                        code:
+                          type: string
+                          description: Carrier code
+                          example: FEDEX
+                        rank:
+                          type: integer
+                          example: 1
+                          description: Priority rank
+                        rate:
+                          type: object
+                          description: Rate details
+                          required:
+                            - totalAmount
+                            - currency
+                          properties:
+                            totalAmount:
+                              type: number
+                              description: Total chargable amount of shipment.
+                              format: double
+                              example: 34.12
+                            currency:
+                              type: string
+                              description: Curreny of country.
+                              example: USD
+                            breakUp:
+                              type: object
+                              description: Break up of charges
+                              properties:
+                                freightCharge:
+                                  type: number
+                                  description: Freight charges
+                                  example: 32
+                                  format: double
+                                additionalCharges:
+                                  type: array
+                                  description: Additional charges details
+                                  items:
+                                    type: object
+                                    properties:
+                                      amount:
+                                        type: number
+                                        description: Amount
+                                        example: 2
+                                        format: double
+                                      chargeHead:
+                                        type: string
+                                        description: Charge head reason
+                                        example: Fuel Surcharge
+                            uuid:
+                              type: string
+                              description: Unique id of rate result.
+                              example: 2e086999-eeba-4f5d-94d3-3a2b7673a6bc
+                        score:
+                          type: integer
+                          example: 1
+                          description: Parameter score
+                        outputTags:
+                          type: object
+                          description: Output tags
+                        matchingodpair:
+                          type: object
+                          description: Match origin and destination pair
+                          properties:
+                            originPostalCode:
+                              type: string
+                              description: Ship from postal code.
+                              example: '10001'
+                            destinationPostalCode:
+                              type: string
+                              description: Ship to postal code.
+                              example: '76064'
+                        serviceType:
+                          type: string
+                          description: Service type
+                          example: FIRST_OVERNIGHT
+                        serviceName:
+                          type: string
+                          description: Service name
+                          example: FedEx First Overnight®
+                        tatUnit:
+                          description: Tat Unit
+                          enum:
+                            - DAY
+                            - HR
+                            - MINS
+                          example: DAY
+                        tatValue:
+                          type: integer
+                          example: 1
+              examples:
+                Example 1:
+                  value:
+                    referenceNumber: '9893121021'
+                    timestamp: string
+                    status: OK
+                    carriers:
+                      - name: Fedex
+                        code: FEDEX
+                        rank: 1
+                        rate:
+                          totalAmount: 34.12
+                          currency: USD
+                          breakUp:
+                            freightCharge: 32
+                            additionalCharges:
+                              - amount: 2
+                                chargeHead: Fuel Surcharge
+                          uuid: 2e086999-eeba-4f5d-94d3-3a2b7673a6bc
+                        score: 1
+                        outputTags: {}
+                        matchingodpair:
+                          originPostalCode: '10001'
+                          destinationPostalCode: '76064'
+                        serviceType: FIRST_OVERNIGHT
+                        serviceName: FedEx First Overnight®
+                        tatUnit: DAY
+                        tatValue: 1
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: serviceability
+    parameters:
+      - schema:
+          type: string
+          example: v1
+          enum:
+            - v1
+        name: version
+        in: path
+        required: true
+        description: Version
+  '/{version}/slots':
+    post:
+      summary: Fetch available slots
+      operationId: fetch-available-slots
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Success Response
+                required:
+                  - latitude
+                  - longitude
+                  - status
+                  - requestId
+                properties:
+                  latitude:
+                    type: number
+                    description: latitude of the destination location.
+                    example: -37.91519684617808
+                  longitude:
+                    type: number
+                    description: longitude of the destination location.
+                    example: 144.99893479380347
+                  pickupLatitude:
+                    type: number
+                    description: latitude of the store pickup location.
+                    example: -37.91519684617808
+                  pickupLongitude:
+                    type: number
+                    description: longitude of the store pickup location.
+                    example: 144.99893479380347
+                  status:
+                    type: string
+                    description: HTTP response name.
+                    example: SUCCESS
+                  requestId:
+                    type: string
+                    description: Unique Request id generated from the System.
+                    example: '1719280139431'
+                  availableSlots:
+                    type: array
+                    description: Fetch slot response
+                    items:
+                      type: object
+                      required:
+                        - date
+                        - slotNumber
+                      properties:
+                        date:
+                          type: string
+                          description: Available date for slot booking.
+                        slotNumber:
+                          type: integer
+                          description: 'Sequence number of the specific slot window, i.e. if 2 slot windows configured in FarEye with Sequence 1 08:00 - 12:00, Sequence 2 12:00-16:00, this shows the appropriate sequence number.'
+                        start:
+                          type: string
+                          description: Start time of the slot window.
+                        end:
+                          type: string
+                          description: End time of the slot window.
+                        preference:
+                          type: string
+                          description: |
+                            Slot utilisation quantification. It has three possible values.
+                            * Worst  - It means, this is the first consignment going in this vehicle. 
+                            * Average - It means, the order is going on an existing Vehicle and Capacity Left in Vehicle is more than 50%.
+                            * Best -It means, the consignment is going on an existing Vehicle and Capacity Left in Vehicle is less than 50%.
+                        routeCode:
+                          type: string
+                          description: 'The system generates a Route Code to identify the initial route for this consignment,should be passed while reserving the slot.'
+                        versionid:
+                          type: string
+                          description: 'The system generated attribute,should be passed while reserving the slot.'
+                        orderSequence:
+                          type: integer
+                          description: 'The system generated attribute,should be passed while reserving the slot,'
+                        fenceId:
+                          type: number
+                          description: 'The system generated attribute, should be passed while reserving the slot.'
+                        vehicleName:
+                          type: string
+                          description: Available vehicle Type (setup in system as a master data) will be recommended.
+                        tentativeKms:
+                          type: number
+                          description: Additional KM required to deliver this consignment.
+              examples:
+                Delivery:
+                  value:
+                    latitude: -37.91519684617808
+                    longitude: 144.99893479380347
+                    status: SUCCESS
+                    requestId: '1719280139431'
+                    availableSlots:
+                      - date: '2024-06-21'
+                        slotNumber: 1
+                        start: '08:00'
+                        end: '19:00'
+                        preference: Best
+                        routeCode: '69_1'
+                        versionId: 7
+                        orderSequence: 1
+                        fenceId: 34
+                        vehicleName: 5.5T SA_Truck
+                        tentativeKms: 24.39
+                Pickup:
+                  value:
+                    latitude: -37.91519684617808
+                    longitude: 144.99893479380347
+                    pickupLatitude: -34.8651163659376
+                    pickupLongitude: 138.5772877123768
+                    status: SUCCESS
+                    requestId: '1719280139431'
+                    availableSlots:
+                      - date: '2024-06-21'
+                        slotNumber: 2
+                        start: '18:00'
+                        end: '23:00'
+                        preference: Worst
+                        routeCode: '5_1'
+                        versionId: 1
+                        orderSequence: 2
+                        fenceId: 20
+                        vehicleName: 5.5T SA_Truck
+                        tentativeKms: 24.39
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '500':
+          $ref: '#/components/responses/500'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - jobMasterCode
+                - originHub
+                - destinationHub
+                - addressLine1
+                - pincode
+                - country
+                - weight
+                - volume
+                - readyByDate
+              properties:
+                referenceNumber:
+                  type: string
+                  description: Request reference number for tracking.
+                jobMasterCode:
+                  type: string
+                  description: 'System configuration code - ''temp:retsol:$:auto_route''.'
+                originHub:
+                  type: string
+                  description: HDC or Starting Location. originHub should be same as destinationHub.
+                destinationHub:
+                  type: string
+                  description: HDC or Starting Location. destinationHub should be same as originHub.
+                latitude:
+                  type: number
+                  description: latitude of the delivery location.Latitude  is mandatory in case address fields are not present.
+                longitude:
+                  type: number
+                  description: latitude of the delivery location.Latitude  is mandatory in case address fields are not present.
+                addressLine1:
+                  type: string
+                  description: address of the destination.
+                addressLine2:
+                  type: string
+                  description: address of the destination.
+                landmark:
+                  type: string
+                  description: landmark for the destination address.
+                pincode:
+                  type: string
+                  description: post code for the destination address.
+                country:
+                  type: string
+                  description: ISO 2-character Country Code Also accepts full name (ie AU and Australia are both valid inputs).
+                weight:
+                  type: number
+                  description: 'Weight of the Consignment (in KG), Default value is 1 kg .'
+                volume:
+                  type: number
+                  description: 'Volume of the Consignment (mm3), Default value is 0.'
+                serviceTime:
+                  type: integer
+                  description: 'Service time (in Mins) for this Consignment. By default, value is 1min.'
+                readyByDate:
+                  type: string
+                  description: date by when the order will be ready for dispatch. Format 'YYYY-MM-DD'
+                maxDateRange:
+                  type: number
+                  description: Slots needed for future days. By Default value is 14 days and the maximum days is also 14.
+                allowedVehicleType:
+                  type: string
+                  description: Any custom skill/ Tags to be considered for the order. This will be passed as blank.
+                orderType:
+                  type: string
+                  description: Values can only be passed in upper case. Allowed values are DELIVERY or PICKUP. It should be passed as 'DELIVERY' for the usecase Delivery/Swapover to customer. 'PICKUP' for the usecase return. Default value is DELIVERY.
+                pickupData:
+                  type: object
+                  description: Store pickup details
+                  properties:
+                    latitude:
+                      type: number
+                      description: latitude of the delivery location.Latitude  is mandatory in case address fields are not present.
+                    longitude:
+                      type: number
+                      description: latitude of the delivery location.Latitude  is mandatory in case address fields are not present.
+                    addressLine1:
+                      type: string
+                      description: address of the destination.
+                    addressLine2:
+                      type: string
+                      description: address of the destination.
+                    landmark:
+                      type: string
+                      description: landmark for the destination address.
+                    pincode:
+                      type: string
+                      description: post code for the destination address.
+                    country:
+                      type: string
+                      description: ISO 2-character Country Code Also accepts full name (ie AU and Australia are both valid inputs).
+                    serviceTime:
+                      type: integer
+                      description: 'Service time (in Mins) for the Store pickup. By default, value is 1min.'
+                    start:
+                      type: string
+                      description: Opening hours of the store location.
+                    end:
+                      type: string
+                      description: Closing hours of the store location.
+            examples:
+              Delivery:
+                value:
+                  referenceNumber: ORD202307122
+                  jobMasterCode: 'temp:retsol:$:auto_route'
+                  originHub: DC-05
+                  destinationHub: DC-05
+                  latitude: -34.87396103
+                  longitude: 138.5294385
+                  addressLine1: '334 South Rd, Croydon Park SA 5008'
+                  addressLine2: ''
+                  landmark: ''
+                  pincode: '5008'
+                  country: AU
+                  weight: 135
+                  volume: 23490
+                  serviceTime: 10
+                  readyByDate: '2024-09-12'
+                  maxDateRange: 14
+                  allowedVehicleType: ''
+                  orderType: DELIVERY
+              Pickup:
+                value:
+                  referenceNumber: ORD202307122
+                  jobMasterCode: 'temp:retsol:$:auto_route'
+                  originHub: DC-05
+                  destinationHub: DC-05
+                  latitude: -34.87396103
+                  longitude: 138.5294385
+                  addressLine1: '334 South Rd, Croydon Park SA 5008'
+                  addressLine2: ''
+                  landmark: ''
+                  pincode: '5008'
+                  country: AU
+                  weight: 135
+                  volume: 23490
+                  serviceTime: 10
+                  readyByDate: '2024-09-12'
+                  maxDateRange: 14
+                  allowedVehicleType: ''
+                  orderType: DELIVERY
+                  pickupData:
+                    latitude: -34.8651163659376
+                    longitude: 138.5772877123768
+                    addressLine1: '5th floor, Tower-B'
+                    addressLine2: '404-406 Churchill Rd, Kilburn SA 5084'
+                    landmark: ''
+                    pincode: '5084'
+                    country: AU
+                    serviceTime: 1
+                    start: '07:00'
+                    end: '20:00'
+        description: ''
+      description: |-
+        **API Description**
+
+        The Get Slot API is designed to retrieve available delivery dates and time slots from a system or application. This API enables businesses to programmatically access and display qualified time slots for deliveries or appointments, considering factors like location, product availability, customer preferences, and operational constraints.
+
+        **Applicability:**
+        It is applicable to only  Big & Bulky business cases.
+
+        PickupData section is only applicable for flyby business cases.
+      tags:
+        - Slot
+    parameters:
+      - schema:
+          type: string
+          example: v1
+          enum:
+            - v1
+        name: version
+        in: path
+        required: true
+        description: Version
+  '/{version}/reserve':
+    post:
+      summary: Reserve dynamic slot
+      operationId: reserve-dynamic-slots
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Success Response
+                required:
+                  - status
+                  - token
+                properties:
+                  status:
+                    type: string
+                    description: HTTP response name.
+                    example: SUCCESS
+                  token:
+                    type: string
+                    description: Slot booking confirmation token
+                    example: '1719280139431'
+              examples:
+                Example 1:
+                  value:
+                    status: SUCCESS
+                    token: '171871930986840'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '500':
+          $ref: '#/components/responses/500'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - referenceNumber
+                - jobMasterCode
+                - destinationHub
+                - date
+                - start
+                - end
+                - latitude
+                - longitude
+                - weight
+              properties:
+                referenceNumber:
+                  type: string
+                  description: Unique system identifier
+                jobMasterCode:
+                  type: string
+                  description: 'System configuration code - ''temp:retsol:$:auto_route''.'
+                destinationHub:
+                  type: string
+                  description: HDC or Starting Location. destinationHub should be same as originHub.
+                date:
+                  type: string
+                  description: 'Delivery date, format ''YYYY-MM-DD''.'
+                start:
+                  type: string
+                  description: Slot start time.
+                end:
+                  type: string
+                  description: Slot end time.
+                preferene:
+                  type: string
+                  description: Slot utilisation preference - Worst/Best/Average. Refer fetch_available_slots section for more details
+                routeCode:
+                  type: string
+                  description: 'Route Code, response code received from  fetch_available_slots, Refer fetch_available_slots section for more details.'
+                versionId:
+                  type: string
+                  description: 'Version ID, response code received from fetch_available_slots, Refer fetch_available_slots section for more details.'
+                orderSequence:
+                  type: string
+                  description: 'Order sequence, response code received from  fetch_available_slots, Refer fetch_available_slots section for more details.'
+                fenceId:
+                  type: string
+                  description: 'Fence ID, response code received from  fetch_available_slots, Refer fetch_available_slots section for more details.'
+                vehicleName:
+                  type: string
+                  description: Vehicle preference for system to consider. By default system will identify the best suited vehicle.
+                expiryDateTime:
+                  type: string
+                  description: 'Slot Reservation Expiry Time. (Cannot be more than 24 Hours from current time). Format ''YYYY-MM-DD hh:mm:ss'''
+                  example: '2024-06-18 23:00:00'
+                latitude:
+                  type: number
+                  description: latitude of the delivery location.
+                longitude:
+                  type: number
+                  description: latitude of the delivery location.
+                weight:
+                  type: number
+                  description: 'Weight of the Consignment (in KG), Default value is 1 kg .'
+                volume:
+                  type: number
+                  description: 'Volume of the Consignment (mm3), Default value is 0.'
+                serviceTime:
+                  type: integer
+                  description: 'Service time (in Mins) for this Consignment. By default, value is 1min.'
+                allowedVehicleType:
+                  type: string
+                  description: Any custom skill/ Tags to be considered for the order. This will be passed as blank.
+                orderType:
+                  type: string
+                  description: Values can only be passed in upper case. Allowed values are DELIVERY or PICKUP. It should be passed as 'DELIVERY' for the usecase Delivery/Swapover to customer. 'PICKUP' for the usecase return. Default value is DELIVERY.
+                pickupData:
+                  type: object
+                  description: Store pickup details
+                  properties:
+                    latitude:
+                      type: number
+                      description: latitude of the delivery location.Latitude  is mandatory in case address fields are not present.
+                    longitude:
+                      type: number
+                      description: latitude of the delivery location.Latitude  is mandatory in case address fields are not present.
+                    serviceTime:
+                      type: integer
+                      description: 'Service time (in Mins) for the Store pickup. By default, value is 1min.'
+                    start:
+                      type: string
+                      description: Opening hours of the store location.
+                    end:
+                      type: string
+                      description: Closing hours of the store location.
+                    orderSequence:
+                      type: integer
+                      description: 'Pickup order sequence, response value of Get slot API.'
+            examples:
+              Delivery:
+                value:
+                  referenceNumber: MBFE0004
+                  jobMasterCode: 'temp:retsol:$:auto_route'
+                  destinationHub: DC-05
+                  date: '2024-09-24'
+                  slotNumber: 1
+                  start: '08:00'
+                  end: '19:00'
+                  preference: Best
+                  routeCode: '7_3'
+                  versionId: '25'
+                  orderSequence: '1'
+                  fenceId: '14'
+                  expiryDateTime: '2024-09-02 23:00:00'
+                  latitude: -34.87396103
+                  longitude: 138.5294385
+                  weight: 50
+                  volume: 23490
+                  serviceTime: 20
+                  allowedVehicleType: ''
+                  orderType: DELIVERY
+              Pickup:
+                value:
+                  referenceNumber: MBFE0004
+                  jobMasterCode: 'temp:retsol:$:auto_route'
+                  destinationHub: DC-05
+                  date: '2024-09-24'
+                  slotNumber: 1
+                  start: '08:00'
+                  end: '19:00'
+                  preference: Best
+                  routeCode: '69_1'
+                  versionId: '3'
+                  orderSequence: '1'
+                  fenceId: '34'
+                  expiryDateTime: '2024-06-18 23:00:00'
+                  latitude: -37.91519684617808
+                  longitude: 144.99893479380347
+                  weight: 50
+                  volume: 23490
+                  serviceTime: 20
+                  allowedVehicleType: ''
+                  orderType: DELIVERY
+                  pickupData:
+                    latitude: -34.8651163659376
+                    longitude: 138.5772877123768
+                    serviceTime: 1
+                    start: '07:00'
+                    end: '20:00'
+                    orderSequence: 1
+        description: ''
+      description: |-
+        **API Description**
+
+        The Reserve Slot API is designed to allow customers to reserve a specific time slot for delivery, appointments, or services. This API enables businesses to enhance customer satisfaction by offering the flexibility to book preferred time slots in advance, ensuring timely and efficient service delivery.
+
+        **Applicability:**
+        It is applicable to only  Big & Bulky business cases.
+      tags:
+        - Slot
+    parameters:
+      - schema:
+          type: string
+          example: v1
+          enum:
+            - v1
+        name: version
+        in: path
+        required: true
+        description: Version
+  '/{version}/consignment':
+    post:
+      summary: Create
+      description: |-
+        Creates a consignment based on the provided information and returns the consignment number and status.
+        * Forward 
+        * Reverse 
+        * Exchange
+        * Transfer
+        * Service
+      tags:
+        - Consignment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - consignmentDetails
+                - shipFrom
+                - shipTo
+              properties:
+                consignmentDetails:
+                  type: object
+                  description: Consignment detail
+                  required:
+                    - referenceNumber
+                    - orderNumber
+                    - consignmentType
+                    - serviceType
+                    - shipByDate
+                    - packageDetails
+                  properties:
+                    referenceNumber:
+                      type: string
+                      description: Unique system identifier.
+                      maxLength: 64
+                      minLength: 4
+                      example: MBFE0004
+                    orderNumber:
+                      type: string
+                      description: Unique Order number used to identify an order.
+                      minLength: 4
+                      maxLength: 64
+                      example: OD01231231212
+                    exchangeOrderNumber:
+                      type: string
+                      description: The exchange order number is only required when the consignment type is "Exchange"
+                      maxLength: 64
+                    consignmentNumber:
+                      type: string
+                      description: |-
+                        The user should provide a key unique to each order. 
+                        If the consignment number is not provided or if it is system-generated, then the order number equals the consignment number.
+                      maxLength: 64
+                    consignmentType:
+                      description: |-
+                        The default consignments include Forward, Reverse, and Exchange.  
+                        Note: Additional types can be added in the master list based on client requirements.
+                      enum:
+                        - Forward
+                        - Reverse
+                        - Exchange
+                        - Transfer
+                        - Service
+                      default: Forward
+                    serviceType:
+                      description: Type of services offered by the carrier
+                      type: string
+                      example: Express
+                      maxLength: 128
+                    shipByDate:
+                      type: string
+                      description: The date the order is to be shipped or dispatch before or on. This field is a suggested value generated by the order source/platform/cart and passed to FarEye.
+                      example: '2023-07-04'
+                      format: date
+                    totalWeight:
+                      type: number
+                      description: Total weight of consignment.
+                      example: 12.92
+                    totalWeightUom:
+                      type: string
+                      description: Total weight unit of measures
+                      enum:
+                        - KG
+                        - LB
+                      default: KG
+                    'totalVolume ':
+                      type: number
+                      description: Total volume of consignment.
+                      example: 4221.1
+                    totalVolumeUom:
+                      type: string
+                      description: Total volume unit of measures.
+                      example: MM3
+                    paymentType:
+                      type: string
+                      description: 'Payment type i.e COD, Prepaid'
+                      example: PREPAID
+                      default: PREPAID
+                    orderAmount:
+                      type: number
+                      description: Order amount
+                      example: 12.98
+                    packageDetails:
+                      $ref: '#/components/schemas/packageDetails'
+                    skuDetails:
+                      $ref: '#/components/schemas/skuDetails'
+                    specialInstructions:
+                      type: string
+                      description: Any special instruction for shipment/product.
+                      maxLength: 256
+                      example: Leave at the my door
+                    additionalInformation:
+                      type: object
+                      description: |
+                        Ad additional information.
+                      properties:
+                        vas:
+                          type: string
+                          description: Value added service
+                    token:
+                      type: string
+                      description: Slot booking confirmation token
+                      maxLength: 64
+                      example: a3693e24-0cc9-4ae4-9f43-23e773205019
+                carrier:
+                  type: object
+                  description: Identifies the carrier to be used for this label if shipper is sending carrier information.
+                  required:
+                    - code
+                  properties:
+                    code:
+                      type: string
+                      description: Carrier Code should always be in upper case & will be provided at the time of subscription. In case of multiple accounts/regions will be separated by underscore '_' ex DHL_DXB where DHL is carrier code and DXB is account/region
+                      maxLength: 64
+                    name:
+                      type: string
+                shipFrom:
+                  type: object
+                  description: Origin Details(Address indicating shipment's origin)
+                  required:
+                    - address
+                  properties:
+                    address:
+                      $ref: '#/components/schemas/address'
+                    startTime:
+                      type: string
+                      description: Ship from start time.
+                      example: '2023-07-19 11:30:00'
+                      format: date-time
+                    endTime:
+                      type: string
+                      description: Ship from end time.
+                      format: date-time
+                      example: '2023-07-19 11:30:00'
+                    timezone:
+                      description: |
+                        Timezone of origin city.
+                      example: GMT
+                      type: string
+                shipTo:
+                  type: object
+                  description: Destination Details / Customer Details (Address indicating shipment's destination)
+                  required:
+                    - address
+                  properties:
+                    address:
+                      $ref: '#/components/schemas/address'
+                    startTime:
+                      type: string
+                      description: Preferred Delivery start time (receiver's)
+                      example: '2019-07-22 11:30:00'
+                      format: date-time
+                    endTime:
+                      type: string
+                      description: Preferred Delivery end time (receiver's)
+                      format: date-time
+                      example: '2019-07-22 11:30:00'
+                    timezone:
+                      type: string
+                      description: Timezone of destination city.
+                shipper:
+                  type: object
+                  description: Shipper Details
+                  required:
+                    - shipperCode
+                  properties:
+                    shipperCode:
+                      type: string
+                      description: Unique id/code of shipper.
+                      maxLength: 32
+                    address:
+                      $ref: '#/components/schemas/address'
+                billTo:
+                  type: object
+                  description: Information indicating shipment's billing address.
+                  properties:
+                    address:
+                      $ref: '#/components/schemas/address'
+            examples:
+              Forward:
+                value:
+                  consignmentDetails:
+                    referenceNumber: MBFE0004
+                    consignmentType: Forward
+                    businessUnit: FAREYE
+                    shipByDate: '2024-06-25'
+                    orderNumber: MB-00004
+                    consignmentNumber: MB-00004
+                    serviceType: GROUND
+                    totalWeight: 5
+                    totalWeightUom: KG
+                    totalVolume: 12.12
+                    totalVolumeUom: MM
+                    paymentType: PP
+                    orderAmount: 99.99
+                    currency: USD
+                    packageDetails:
+                      - id: LPN04
+                        type: CUSTOMER_SUPPLIED_PACKAGE
+                        value: 1
+                        description: Alcohol - pack of Six
+                        length: 10
+                        width: 5
+                        height: 8
+                        dimensionUom: IN
+                        weight: 20
+                        weightUom: LBS
+                        volume: 30
+                        volumeUom: CIN
+                        quantity: 1
+                    skuDetails:
+                      - code: LPN04
+                        name: 2021 Reserve Cabernet Sauvignon
+                        hsnName: ''
+                        quantity: 10
+                        uom: 1
+                        unitPrice: 21.12
+                        value: 99.99
+                        weight: 20
+                        weightUom: KG
+                        description: ALcohol - Pack of Six
+                        imageUrl: 'https://example.com/image.jpg'
+                        packageId: LPN03
+                    additionalInformation:
+                      invoiceNumber: INV01
+                      alcoholDelivery: 'Yes'
+                      adultSignatureRequired: 'Yes'
+                    specialInstructions: Handle with care and take sign with customer
+                    token: a3693e24-0cc9-4ae4-9f43-23e773205019
+                  carrier:
+                    code: UPS-NEW
+                  shipFrom:
+                    address:
+                      type: BUSINESS
+                      code: LWPR
+                      name: BOBO CHOSES
+                      line1: 'Parking lot, 11680 Chimney Rock Rd'
+                      line2: ''
+                      line3: ''
+                      landmark: Near Park
+                      email: johndoe@example.com
+                      contactNumber: '1234567890 '
+                      city: Paso Robles
+                      state: CA
+                      pincode: '93446'
+                      county: ''
+                      country: US
+                      latitude: '35.6549327178669'
+                      longitude: '-120.90078116801813'
+                    startTime: '2024-08-21 18:00:00'
+                    endTime: '2024-08-21 20:00:00'
+                    timezone: GMT
+                  shipTo:
+                    address:
+                      type: CONSUMER
+                      code: ''
+                      name: Kamalasen
+                      line1: 2700 Buena Vista Dr
+                      line2: ''
+                      line3: ''
+                      landmark: Near Park
+                      email: johndoe@example.com
+                      contactNumber: '1234567890'
+                      city: Paso Robles
+                      state: CA
+                      pincode: '93446'
+                      county: ''
+                      country: US
+                      latitude: '35.64751133089609'
+                      longitude: '-120.67038606235222'
+                    startTime: '2024-08-21 18:00:00'
+                    endTime: '2024-08-21 21:00:00'
+                    timezone: GMT
+                  billTo:
+                    address:
+                      type: CONSUMER
+                      code: ''
+                      name: Kamalasen
+                      line1: 2700 Buena Vista Dr
+                      line2: ''
+                      line3: ''
+                      landmark: Near Park
+                      email: johndoe@example.com
+                      contactNumber: '1234567890'
+                      city: Paso Robles
+                      state: CA
+                      pincode: '93446'
+                      county: ''
+                      country: US
+                      latitude: '35.6549327178669'
+                      longitude: '-120.90078116801813'
+              Reverse:
+                value:
+                  consignmentDetails:
+                    referenceNumber: MBFE0004
+                    consignmentType: Reverse
+                    businessUnit: FAREYE
+                    shipByDate: '2024-06-25'
+                    orderNumber: MB-00004
+                    consignmentNumber: MB-00004
+                    serviceType: GROUND
+                    totalWeight: 5
+                    totalWeightUom: KG
+                    totalVolume: 12.12
+                    totalVolumeUom: MM
+                    paymentType: PP
+                    orderAmount: 99.99
+                    currency: USD
+                    packageDetails:
+                      - id: LPN04
+                        type: CUSTOMER_SUPPLIED_PACKAGE
+                        value: 1
+                        description: Alcohol - pack of Six
+                        length: 10
+                        width: 5
+                        height: 8
+                        dimensionUom: IN
+                        weight: 20
+                        weightUom: LBS
+                        volume: 30
+                        volumeUom: CIN
+                        quantity: 1
+                    skuDetails:
+                      - code: LPN04
+                        name: 2021 Reserve Cabernet Sauvignon
+                        hsnName: ''
+                        quantity: 10
+                        uom: 1
+                        unitPrice: 21.12
+                        value: 99.99
+                        weight: 20
+                        weightUom: KG
+                        description: ALcohol - Pack of Six
+                        imageUrl: 'https://example.com/image.jpg'
+                        packageId: LPN03
+                    additionalInformation:
+                      invoiceNumber: INV01
+                      alcoholDelivery: 'Yes'
+                      adultSignatureRequired: 'Yes'
+                    specialInstructions: Handle with care and take sign with customer
+                    token: a3693e24-0cc9-4ae4-9f43-23e773205019
+                  carrier:
+                    code: UPS-NEW
+                  shipFrom:
+                    address:
+                      type: BUSINESS
+                      code: LWPR
+                      name: BOBO CHOSES
+                      line1: 'Parking lot, 11680 Chimney Rock Rd'
+                      line2: ''
+                      line3: ''
+                      landmark: Near Park
+                      email: johndoe@example.com
+                      contactNumber: '1234567890 '
+                      city: Paso Robles
+                      state: CA
+                      pincode: '93446'
+                      county: ''
+                      country: US
+                      latitude: '35.6549327178669'
+                      longitude: '-120.90078116801813'
+                    startTime: '2024-08-21 18:00:00'
+                    endTime: '2024-08-21 20:00:00'
+                    timezone: GMT
+                  shipTo:
+                    address:
+                      type: CONSUMER
+                      code: ''
+                      name: Kamalasen
+                      line1: 2700 Buena Vista Dr
+                      line2: ''
+                      line3: ''
+                      landmark: Near Park
+                      email: johndoe@example.com
+                      contactNumber: '1234567890'
+                      city: Paso Robles
+                      state: CA
+                      pincode: '93446'
+                      county: ''
+                      country: US
+                      latitude: '35.64751133089609'
+                      longitude: '-120.67038606235222'
+                    startTime: '2024-08-21 18:00:00'
+                    endTime: '2024-08-21 21:00:00'
+                    timezone: GMT
+                  billTo:
+                    address:
+                      type: CONSUMER
+                      code: ''
+                      name: Kamalasen
+                      line1: 2700 Buena Vista Dr
+                      line2: ''
+                      line3: ''
+                      landmark: Near Park
+                      email: johndoe@example.com
+                      contactNumber: '1234567890'
+                      city: Paso Robles
+                      state: CA
+                      pincode: '93446'
+                      county: ''
+                      country: US
+                      latitude: '35.6549327178669'
+                      longitude: '-120.90078116801813'
+              Exchange:
+                value:
+                  consignmentDetails:
+                    referenceNumber: MBFE0006
+                    consignmentType: Exchange
+                    shipByDate: '2024-07-09'
+                    orderNumber: ORDER_MB3004
+                    exchnageOrderNumber: ORDER_MB3003
+                    consignmentNumber: '21312311'
+                    serviceType: UPS_SAVER
+                    totalWeight: 11.12
+                    totalWeightUom: KG
+                    totalVolume: 12.12
+                    totalVolumeUom: MM
+                    paymentType: Cash
+                    orderAmount: 12.12
+                    packageDetails:
+                      - id: 2024_07_23_10_MB-3
+                        type: CUSTOMER_SUPPLIED_PACKAGE
+                        value: 99.99
+                        description: Product
+                        length: 10
+                        width: 5
+                        height: 8
+                        dimensionUom: CM
+                        weight: 20
+                        weightUom: KG
+                        volume: 30
+                        volumeUom: CIN
+                    skuDetails:
+                      - code: LG21
+                        name: LG TV
+                        hsnName: ''
+                        quantity: 10
+                        uom: 1
+                        unitPrice: 21.12
+                        value: 100
+                        weight: 20
+                        weightUom: KG
+                        description: LG full HD
+                        imageUrl: 'https://example.com/image.jpg'
+                        packageId: 2024_07_23_10_MB-3
+                    additionalInformation:
+                      invoiceValue: '12.12'
+                    specialInstructions: Handle with care
+                  carrier:
+                    code: FAREYE
+                    name: FarEyE
+                  shipFrom:
+                    address:
+                      type: BUSINESS
+                      code: Sector 117
+                      name: Asim Bashar Ansari
+                      line1: 'Parking lot, 11680 Chimney Rock Rd'
+                      line2: ''
+                      line3: ''
+                      landmark: Near Park
+                      email: johndoe@example.com
+                      contactNumber: '1234567890 '
+                      city: Paso Robles
+                      state: NY
+                      pincode: '201301'
+                      county: ''
+                      country: ES
+                      latitude: '35.6549327178669'
+                      longitude: '-120.90078116801813'
+                    startTime: '2024-01-29 18:00:00'
+                    endTime: '2024-01-29 20:00:00'
+                    timezone: GMT
+                  shipTo:
+                    address:
+                      type: BUSINESS
+                      code: '55670299'
+                      name: Faiz Ashruf
+                      line1: 2700 Buena Vista Dr
+                      line2: ''
+                      line3: ''
+                      landmark: Near Park
+                      email: johndoe@example.com
+                      contactNumber: '1234567890'
+                      city: Oberkirch
+                      state: NJ
+                      pincode: '201304'
+                      county: ''
+                      country: ES
+                      latitude: '35.64751133089609'
+                      longitude: '-120.67038606235222'
+                    startTime: '2024-01-29 18:00:00'
+                    endTime: '2024-01-29 20:00:00'
+                    timezone: GMT
+                  billTo:
+                    address:
+                      type: BUSINESS
+                      code: del
+                      name: Jafri Asim
+                      line1: 'Parking lot, 11680 Chimney Rock Rd'
+                      line2: ''
+                      line3: ''
+                      landmark: Near Park
+                      email: johndoe@example.com
+                      contactNumber: '1234567890'
+                      city: Oberkirch
+                      state: ''
+                      pincode: '93446'
+                      county: ''
+                      country: ES
+                      latitude: '35.6549327178669'
+                      longitude: '-120.90078116801813'
+                  shipper:
+                    code: V0V780
+                    address:
+                      type: BUSINESS
+                      code: del
+                      name: Bashar
+                      line1: 'Parking lot, 11680 Chimney Rock Rd'
+                      line2: ''
+                      line3: ''
+                      landmark: Near Park
+                      email: johndoe@example.com
+                      contactNumber: '1234567890'
+                      city: Oberkirch
+                      state: ''
+                      pincode: '93446'
+                      county: ''
+                      country: ES
+                      latitude: '35.6549327178669'
+                      longitude: '-120.90078116801813'
+        description: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Success Response
+                required:
+                  - timestamp
+                  - status
+                properties:
+                  timestamp:
+                    type: string
+                    description: Current timestamp.
+                    example: '2024-07-17T13:23:55.490508'
+                  status:
+                    type: string
+                    description: HTTP response name.
+                    example: OK
+                  data:
+                    type: array
+                    description: Response
+                    items:
+                      type: object
+                      required:
+                        - referenceNumber
+                        - orderNumber
+                      properties:
+                        referenceNumber:
+                          type: string
+                          example: MBFE0004
+                          description: Unique system identifier.
+                        orderNumber:
+                          type: string
+                          description: The unique number assigned to the Order in shipper system.
+                        consignmentNumber:
+                          type: string
+                          description: Consignment number generated by shipper or FarEye system.
+                        masterTrackingNumber:
+                          type: string
+                          description: Use the master tracking number when multiple labels are generated and share a common tracking number for easy tracking.
+                        trackingDetails:
+                          type: array
+                          description: List of generated Label & tracking number/awb.
+                          items:
+                            type: object
+                            required:
+                              - packageId
+                              - trackingNumber
+                            properties:
+                              packageId:
+                                type: string
+                                description: Package id for label generated.
+                              trackingNumber:
+                                type: string
+                                description: Generated awb/tracking number by given carrier or FarEye system.
+                              label:
+                                type: string
+                                description: Generated label url by given carrier/FarEye in pdf format.
+                              carrierDetails:
+                                type: object
+                                description: The carrier detial which has generated label and awb/tracking number & rates.
+                                required:
+                                  - code
+                                properties:
+                                  code:
+                                    type: string
+                                    description: The carrier code which has generated label and awb/tracking number.
+                                  name:
+                                    type: string
+                                    description: The carrier name which has generated label and awb/tracking number.
+                                  serviceType:
+                                    type: string
+                                    description: Type of service offered by carrier.
+                                  shipTime:
+                                    type: string
+                                    description: Shipping time.
+                                    example: '12:11'
+                                  deliveryTime:
+                                    type: string
+                                    description: Expected delivery time.
+                                  cutoffTime:
+                                    type: string
+                                    description: Pickup cutoff time.
+                                  deliveryDay:
+                                    type: string
+                                    description: Day of delivery.
+                                  totalTransitDays:
+                                    type: integer
+                                    description: Number of transit days.
+                                  tatUnit:
+                                    type: string
+                                    description: 'Unit to TAT i.e Day, HR, Mins,etc.'
+                                  tatValue:
+                                    type: integer
+                                    description: Tat value.
+                                  rank:
+                                    type: integer
+                                    description: Rank given by carrier allocation.
+                                  rate:
+                                    type: object
+                                    description: Shipment rate details.
+                                    properties:
+                                      totalAmount:
+                                        type: integer
+                                        description: Total amount of shipment.
+                                      breakUp:
+                                        type: object
+                                        description: Break ups of shipment rates.
+                                        properties:
+                                          freightCharge:
+                                            type: integer
+                                            description: Freight charge
+                                          additionalCharges:
+                                            type: array
+                                            description: Additonal charges
+                                            items:
+                                              type: object
+                                              properties:
+                                                amount:
+                                                  type: integer
+                                                  description: Amount
+                                                chargeHead:
+                                                  type: string
+                                                  description: Charge type /head i.e Fixed or Percentage
+                                      uuid:
+                                        type: string
+                                        description: Unique id of rate system.
+                                  score:
+                                    type: integer
+                                    description: Score
+                                  outputTags:
+                                    type: object
+                                    description: Output tag detail if any.
+                                    properties:
+                                      awbSeries:
+                                        type: string
+                                        description: Awb services
+                                      tat:
+                                        type: string
+                                        description: |
+                                          Tat
+                        trackingUrl:
+                          type: string
+                          description: |
+                            Tracking url given by carrier..
+              examples:
+                Example 1:
+                  value:
+                    timestamp: '2024-07-17T13:23:55.490508'
+                    status: OK
+                    data:
+                      - referenceNumber: MBFE004
+                        orderNumber: ORDER_MB155
+                        consignmentNumber: ORDER_MB155-1
+                        masterTrackingNumber: ''
+                        trackingUrl: ''
+                        trackingDetails:
+                          - packageId: '2023_11_23_10_4223'
+                            trackingNumber: 1ZXXXXXXXXXXXXXXXX
+                            label: 'https://fes-expand-staging.s3.us-west-2.amazonaws.com/staging/Carrier/UPS-NEW/23726c2a-331c-41a7-9dde-30ba6ce15e47/label/ORDER_MB155_1ZXXXXXXXXXXXXXXXX.zpl'
+                            carrierDetails:
+                              name: UPS-NEW
+                              code: UPS-NEW
+                              rank: 0
+                              logo: null
+                              rate: null
+                              score: null
+                              externalShipmentNumber: false
+                              externalLabelUrl: false
+                              active: false
+                              outputTags: null
+                              matchingOdPair: null
+                              serviceCode: Express
+                              serviceType: Express
+                              serviceName: Express
+                              shipTime: ''
+                              deliveryTime: ''
+                              cutoffTime: ''
+                              deliveryDay: Mon
+                              totalTransitDays: 2
+                              tatUnit: Day
+                              tatValue: 2
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: create-consignment
+    parameters:
+      - schema:
+          type: string
+          enum:
+            - v1
+          example: v1
+        name: version
+        in: path
+        required: true
+        description: Version
+    put:
+      summary: Update
+      description: 'The purpose of the Consignment Update API is to update all the relevant details of a consignment if needed. This API enables users to modify consignment information such as recipient details, address, and other pertinent data to ensure accuracy and up-to-date records.'
+      tags:
+        - Consignment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - consignmentDetails
+              properties:
+                consignmentDetails:
+                  type: object
+                  description: Consignment detail
+                  required:
+                    - referenceNumber
+                    - orderNumber
+                  properties:
+                    referenceNumber:
+                      type: string
+                      description: Unique system identifier.
+                      maxLength: 64
+                      minLength: 4
+                      example: MBFE0004
+                    orderNumber:
+                      type: string
+                      description: Unique Order number used to identify an order.
+                    consignmentNumber:
+                      type: string
+                      description: |-
+                        The user should provide a key unique to each order. 
+                        If the consignment number is not provided or if it is system-generated, then the order number equals the consignment number.
+                    consignmentType:
+                      description: |-
+                        The user should provide a key unique to each order. 
+                        If the consignment number is not provided or if it is system-generated, then the order number equals the consignment number.
+                      enum:
+                        - Forward
+                        - Return
+                        - Exchange
+                        - Transfer
+                        - Service
+                    serviceType:
+                      description: Type of services offered by the carrier
+                      type: string
+                      example: Express
+                    shipByDate:
+                      type: string
+                      description: The date the order is to be shipped or dispatch before or on. This field is a suggested value generated by the order source/platform/cart and passed to FarEye.
+                      example: '2023-07-04'
+                      format: date
+                    totalWeight:
+                      type: number
+                      description: Total weight
+                    totalWeightUom:
+                      type: string
+                      description: Total weight unit of measures
+                      enum:
+                        - KG
+                        - LB
+                    'totalVolume ':
+                      type: number
+                      description: Total volume unit of measures
+                    totalVolumeUom:
+                      type: string
+                      description: Total volume unit of measures.
+                    paymentType:
+                      type: string
+                      description: |
+                        Payment type
+                    orderAmount:
+                      type: number
+                      description: Order amount
+                    packageDetails:
+                      $ref: '#/components/schemas/packageDetails'
+                    skuDetails:
+                      $ref: '#/components/schemas/skuDetails'
+                    specialInstructions:
+                      type: string
+                      description: Any special instruction for shipment/product.
+                    additionalInformation:
+                      type: object
+                      description: |
+                        Ad additional information.
+                      properties:
+                        vas:
+                          type: string
+                          description: 'Send as key value '
+                    token:
+                      type: string
+                      description: Slot booking confirmation token
+                      example: a3693e24-0cc9-4ae4-9f43-23e773205019
+                      maxLength: 64
+                carrier:
+                  type: object
+                  description: Identifies the carrier to be used for this label if shipper is sending carrier information.
+                  properties:
+                    code:
+                      type: string
+                      description: Carrier Code should always be in upper case & will be provided at the time of subscription. In case of multiple accounts/regions will be separated by underscore '_' ex DHL_DXB where DHL is carrier code and DXB is account/region
+                    name:
+                      type: string
+                shipFrom:
+                  type: object
+                  description: Origin Details(Address indicating shipment's origin)
+                  properties:
+                    address:
+                      $ref: '#/components/schemas/address'
+                    startTime:
+                      type: string
+                      description: Ship from start time.
+                      example: '2023-07-19 11:30:00'
+                      format: date-time
+                    endTime:
+                      type: string
+                      description: Ship from end time.
+                      format: date-time
+                      example: '2023-07-19 11:30:00'
+                    timezone:
+                      description: |
+                        Timezone of origin city.
+                      example: GMT
+                      type: string
+                shipTo:
+                  type: object
+                  description: Destination Details / Customer Details (Address indicating shipment's destination)
+                  properties:
+                    address:
+                      $ref: '#/components/schemas/address'
+                    startTime:
+                      type: string
+                      description: Preferred Delivery start time (receiver's)
+                      example: '2019-07-22 11:30:00'
+                      format: date-time
+                    endTime:
+                      type: string
+                      description: Preferred Delivery end time (receiver's)
+                      format: date-time
+                      example: '2019-07-22 11:30:00'
+                    timezone:
+                      type: string
+                      description: Timezone of destination city.
+                shipper:
+                  type: object
+                  description: Shipper Details
+                  properties:
+                    shipperCode:
+                      type: string
+                      description: Unique id/code of shipper.
+                    address:
+                      $ref: '#/components/schemas/address'
+                billTo:
+                  type: object
+                  description: Information indicating shipment's billing address.
+                  properties:
+                    address:
+                      $ref: '#/components/schemas/address'
+            examples:
+              All details update:
+                value:
+                  consignmentDetails:
+                    referenceNumber: MBFE0004
+                    consignmentType: Forward
+                    businessUnit: FAREYE
+                    shipByDate: '2024-06-25'
+                    orderNumber: MB-00004
+                    consignmentNumber: MB-00004
+                    serviceType: GROUND
+                    totalWeight: 5
+                    totalWeightUom: KG
+                    totalVolume: 12.12
+                    totalVolumeUom: MM
+                    paymentType: PP
+                    orderAmount: 99.99
+                    currency: USD
+                    packageDetails:
+                      - id: LPN04
+                        type: CUSTOMER_SUPPLIED_PACKAGE
+                        value: 1
+                        description: Alcohol - pack of Six
+                        length: 10
+                        width: 5
+                        height: 8
+                        dimensionUom: IN
+                        weight: 20
+                        weightUom: LBS
+                        volume: 30
+                        volumeUom: CIN
+                        quantity: 1
+                    skuDetails:
+                      - code: LPN04
+                        name: 2021 Reserve Cabernet Sauvignon
+                        hsnName: ''
+                        quantity: 10
+                        uom: 1
+                        unitPrice: 21.12
+                        value: 99.99
+                        weight: 20
+                        weightUom: KG
+                        description: ALcohol - Pack of Six
+                        imageUrl: 'https://example.com/image.jpg'
+                        packageId: LPN03
+                    additionalInformation:
+                      invoiceNumber: INV01
+                      alcoholDelivery: 'Yes'
+                      adultSignatureRequired: 'Yes'
+                    specialInstructions: Handle with care and take sign with customer
+                    token: a3693e24-0cc9-4ae4-9f43-23e773205019
+                  carrier:
+                    code: UPS-NEW
+                  shipFrom:
+                    address:
+                      type: BUSINESS
+                      code: LWPR
+                      name: BOBO CHOSES
+                      line1: 'Parking lot, 11680 Chimney Rock Rd'
+                      line2: ''
+                      line3: ''
+                      landmark: Near Park
+                      email: johndoe@example.com
+                      contactNumber: '1234567890 '
+                      city: Paso Robles
+                      state: CA
+                      pincode: '93446'
+                      county: ''
+                      country: US
+                      latitude: '35.6549327178669'
+                      longitude: '-120.90078116801813'
+                    startTime: '2024-08-21 18:00:00'
+                    endTime: '2024-08-21 20:00:00'
+                    timezone: GMT
+                  shipTo:
+                    address:
+                      type: CONSUMER
+                      code: ''
+                      name: Kamalasen
+                      line1: 2700 Buena Vista Dr
+                      line2: ''
+                      line3: ''
+                      landmark: Near Park
+                      email: johndoe@example.com
+                      contactNumber: '1234567890'
+                      city: Paso Robles
+                      state: CA
+                      pincode: '93446'
+                      county: ''
+                      country: US
+                      latitude: '35.64751133089609'
+                      longitude: '-120.67038606235222'
+                    startTime: '2024-08-21 18:00:00'
+                    endTime: '2024-08-21 21:00:00'
+                    timezone: GMT
+                  billTo:
+                    address:
+                      type: CONSUMER
+                      code: ''
+                      name: Kamalasen
+                      line1: 2700 Buena Vista Dr
+                      line2: ''
+                      line3: ''
+                      landmark: Near Park
+                      email: johndoe@example.com
+                      contactNumber: '1234567890'
+                      city: Paso Robles
+                      state: CA
+                      pincode: '93446'
+                      county: ''
+                      country: US
+                      latitude: '35.6549327178669'
+                      longitude: '-120.90078116801813'
+              Partial Update:
+                value:
+                  consignmentDetails:
+                    referenceNumber: MBFE0004
+                    orderNumber: string
+                    packageDetails:
+                      - packageId: PKG9131122
+                        packageType: Carton
+                        packageDescription: TV units
+                        packageValue: 34.44
+                        width: 3.98
+                        length: 4.12
+                        height: 2.94
+                        dimensionUom: IN
+                        weight: 5.98
+                        weightUom: KG
+                        volume: 12.01
+                        volumeUom: MM3
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Success Response
+                required:
+                  - timestamp
+                  - status
+                properties:
+                  timestamp:
+                    type: string
+                    description: Current timestamp.
+                    example: '2024-07-17T13:23:55.490508'
+                  status:
+                    type: string
+                    description: HTTP response name.
+                    example: OK
+                  data:
+                    type: array
+                    description: Response
+                    items:
+                      type: object
+                      required:
+                        - referenceNumber
+                        - orderNumber
+                      properties:
+                        referenceNumber:
+                          type: string
+                          example: MBFE0004
+                          description: Unique system identifier.
+                        orderNumber:
+                          type: string
+                          description: The unique number assigned to the Order in shipper system.
+                        consignmentNumber:
+                          type: string
+                          description: Consignment number generated by shipper or FarEye system.
+                        masterTrackingNumber:
+                          type: string
+                          description: Use the master tracking number when multiple labels are generated and share a common tracking number for easy tracking.
+                        trackingDetails:
+                          type: array
+                          description: List of generated Label & tracking number/awb.
+                          items:
+                            type: object
+                            required:
+                              - packageId
+                              - trackingNumber
+                            properties:
+                              packageId:
+                                type: string
+                                description: Package id for label generated.
+                              trackingNumber:
+                                type: string
+                                description: Generated awb/tracking number by given carrier or FarEye system.
+                              label:
+                                type: string
+                                description: Generated label url by given carrier/FarEye in pdf format.
+                              carrierDetails:
+                                type: object
+                                description: The carrier detial which has generated label and awb/tracking number & rates.
+                                required:
+                                  - code
+                                properties:
+                                  code:
+                                    type: string
+                                    description: The carrier code which has generated label and awb/tracking number.
+                                  name:
+                                    type: string
+                                    description: The carrier name which has generated label and awb/tracking number.
+                                  serviceType:
+                                    type: string
+                                    description: Type of service offered by carrier.
+                                  shipTime:
+                                    type: string
+                                    description: Shipping time.
+                                    example: '12:11'
+                                  deliveryTime:
+                                    type: string
+                                    description: Expected delivery time.
+                                  cutoffTime:
+                                    type: string
+                                    description: Pickup cutoff time.
+                                  deliveryDay:
+                                    type: string
+                                    description: Day of delivery.
+                                  totalTransitDays:
+                                    type: integer
+                                    description: Number of transit days.
+                                  tatUnit:
+                                    type: string
+                                    description: 'Unit to TAT i.e Day, HR, Mins,etc.'
+                                  tatValue:
+                                    type: integer
+                                    description: Tat value.
+                                  rank:
+                                    type: integer
+                                    description: Rank given by carrier allocation.
+                                  rate:
+                                    type: object
+                                    description: Shipment rate details.
+                                    properties:
+                                      totalAmount:
+                                        type: integer
+                                        description: Total amount of shipment.
+                                      breakUp:
+                                        type: object
+                                        description: Break ups of shipment rates.
+                                        properties:
+                                          freightCharge:
+                                            type: integer
+                                            description: Freight charge
+                                          additionalCharges:
+                                            type: array
+                                            description: Additonal charges
+                                            items:
+                                              type: object
+                                              properties:
+                                                amount:
+                                                  type: integer
+                                                  description: Amount
+                                                chargeHead:
+                                                  type: string
+                                                  description: Charge type /head i.e Fixed or Percentage
+                                      uuid:
+                                        type: string
+                                        description: Unique id of rate system.
+                                  score:
+                                    type: integer
+                                    description: Score
+                                  outputTags:
+                                    type: object
+                                    description: Output tag detail if any.
+                                    properties:
+                                      awbSeries:
+                                        type: string
+                                        description: Awb services
+                                      tat:
+                                        type: string
+                                        description: |
+                                          Tat
+                        trackingUrl:
+                          type: string
+                          description: |
+                            Tracking url given by carrier..
+              examples:
+                Example 1:
+                  value:
+                    timestamp: '2024-07-17T13:23:55.490508'
+                    status: OK
+                    data:
+                      - referenceNumber: MBFE004
+                        orderNumber: ORDER_MB155
+                        consignmentNumber: ORDER_MB155-1
+                        masterTrackingNumber: ''
+                        trackingUrl: ''
+                        trackingDetails:
+                          - packageId: '2023_11_23_10_4223'
+                            trackingNumber: 1ZXXXXXXXXXXXXXXXX
+                            label: 'https://fes-expand-staging.s3.us-west-2.amazonaws.com/staging/Carrier/UPS-NEW/23726c2a-331c-41a7-9dde-30ba6ce15e47/label/ORDER_MB155_1ZXXXXXXXXXXXXXXXX.zpl'
+                            carrierDetails:
+                              name: UPS-NEW
+                              code: UPS-NEW
+                              rank: 0
+                              logo: null
+                              rate: null
+                              score: null
+                              externalShipmentNumber: false
+                              externalLabelUrl: false
+                              active: false
+                              outputTags: null
+                              matchingOdPair: null
+                              serviceCode: Express
+                              serviceType: Express
+                              serviceName: Express
+                              shipTime: ''
+                              deliveryTime: ''
+                              cutoffTime: ''
+                              deliveryDay: Mon
+                              totalTransitDays: 2
+                              tatUnit: Day
+                              tatValue: 2
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: update-consignment
+  '/{version}/cancel':
+    post:
+      summary: Cancel
+      description: 'The purpose of API is to cancel any existing consignment at any moment. This API enables users to terminate the consignment process, ensuring that shipments can be halted and updated accurately in the system as needed. The consignment cannot be cancelled after dispatch.'
+      tags:
+        - Consignment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              x-examples:
+                Example 1:
+                  consignments:
+                    - consignmentNumber: CN001
+                      remark: '124214124124124124124124124124124'
+                    - consignmentNumber: CN002
+                      remark: asdasda
+              required:
+                - consignments
+              properties:
+                consignments:
+                  type: array
+                  description: List of consignments.
+                  items:
+                    type: object
+                    required:
+                      - referenceNumber
+                    properties:
+                      referenceNumber:
+                        type: string
+                        example: MBFE0004
+                        maxLength: 64
+                        description: System unique identifier.
+                      remark:
+                        type: string
+                        description: The cancel remark or reason.
+            examples:
+              Example 1:
+                value:
+                  consignments:
+                    - referenceNumber: MBFE0004
+                      remark: Customer don't want order
+                    - referenceNumber: MBFE0005
+                      remark: Customer don't want order.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    response:
+                      - timestamp: 1718797519181
+                        consignmentNumber: MB-123312
+                        message: The consignment cancelled successfully
+                    successCount: 0
+                    failCount: 1
+                required:
+                  - timestamp
+                  - status
+                  - successCount
+                  - failCount
+                  - data
+                properties:
+                  timestamp:
+                    type: string
+                    description: Current timestamp
+                    example: '2024-07-17T13:23:55.490508'
+                  status:
+                    type: string
+                    description: HTTP response name
+                    example: OK
+                  successCount:
+                    type: integer
+                    description: Success count
+                    example: 1
+                  failCount:
+                    type: integer
+                    description: Failed count
+                    example: 1
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - referenceNumber
+                        - message
+                        - status
+                      properties:
+                        referenceNumber:
+                          type: string
+                          example: MBFE0004
+                          description: Unqiue system identifier.
+                        message:
+                          type: string
+                          description: Message
+                        status:
+                          enum:
+                            - Success
+                            - Failed
+                          description: Consigment status i.e Success of Failed.
+              examples:
+                Example 1:
+                  value:
+                    timestamp: '2024-07-17T12:19:57.601769'
+                    status: OK
+                    successCount: 1
+                    failCount: 1
+                    data:
+                      - referenceNumber: CN001
+                        message: The consignment has already been cancelled
+                        status: Failed
+                      - referenceNumber: CN002
+                        message: The consignment cancelled successfully.
+                        status: Success
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: consignment-cancel
+    parameters:
+      - schema:
+          type: string
+          enum:
+            - v1
+          example: v1
+        name: version
+        in: path
+        required: true
+        description: Version
+  '/{version}/users':
+    post:
+      summary: Create
+      description: 'The purpose of the create user API is to facilitate the creation of new user accounts within the SSO. This API allows for the seamless integration of user management, enabling new users to be added to the system efficiently and securely.'
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                required:
+                  - login
+                  - password
+                  - firstName
+                  - lastName
+                  - email
+                  - activated
+                  - employeeCode
+                  - mobileNo
+                  - userTypeName
+                  - hubCode
+                properties:
+                  login:
+                    type: string
+                    example: user1
+                  password:
+                    type: string
+                    example: mohit@%$q1Ww!!
+                  firstName:
+                    type: string
+                    example: Mohit
+                  lastName:
+                    type: string
+                    example: .
+                  email:
+                    type: string
+                    example: ''
+                  activated:
+                    type: boolean
+                    example: true
+                  employeeCode:
+                    type: string
+                    example: FE004
+                  mobileNo:
+                    type: string
+                    example: '1234567899'
+                  userTypeName:
+                    type: string
+                    example: Field Executive
+                  hubCode:
+                    type: string
+                    example: dc-05
+                  serviceProviderCode:
+                    type: string
+                    example: ''
+                  profileImage:
+                    type: string
+                    example: 'http://abc.com/image.jpg'
+      responses:
+        '200':
+          description: User creation response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    login:
+                      type: string
+                      example: user1_admin
+                    firstName:
+                      type: string
+                      example: Morphy
+                    lastName:
+                      type: string
+                      example: .
+                    email:
+                      type: string
+                      example: ''
+                    activated:
+                      type: boolean
+                      example: true
+                    employeeCode:
+                      type: string
+                      example: user1565_admin
+                    userTypeName:
+                      type: string
+                      example: Field Executive
+                    mobileNo:
+                      type: string
+                      example: '1234567899'
+                    hub:
+                      type: object
+                      properties:
+                        hubName:
+                          type: string
+                          example: HDC (SA)
+                        hubCode:
+                          type: string
+                          example: dc-05
+                        city:
+                          type: object
+                          properties:
+                            cityId:
+                              type: integer
+                              example: 2
+                            cityName:
+                              type: string
+                              example: Adelaide
+                    lastLoginTime:
+                      type: string
+                      nullable: true
+                      example: null
+                    createdAt:
+                      type: string
+                      format: date-time
+                      example: '2024-09-02 03:26:15'
+                    lastModifiedDate:
+                      type: string
+                      format: date-time
+                      example: '2024-09-02 03:26:15'
+                    profileImage:
+                      type: string
+                      example: 'http://abc.com/image.jpg'
+        '400':
+          description: Bad request due to invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid input provided
+        '401':
+          $ref: '#/components/responses/401'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: create-users
+    put:
+      summary: Update
+      description: 'The purpose of the update user API is to facilitate the updation of new user accounts within the SSO. This API allows for the seamless integration of user management, enabling new users to be added to the system efficiently and securely.'
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                required:
+                  - login
+                  - password
+                  - firstName
+                  - lastName
+                  - email
+                  - activated
+                  - employeeCode
+                  - mobileNo
+                  - userTypeName
+                  - hubCode
+                properties:
+                  login:
+                    type: string
+                    example: user1
+                  password:
+                    type: string
+                    example: mohit@%$q1Ww!!
+                  firstName:
+                    type: string
+                    example: Mohit
+                  lastName:
+                    type: string
+                    example: .
+                  email:
+                    type: string
+                    example: ''
+                  activated:
+                    type: boolean
+                    example: true
+                  employeeCode:
+                    type: string
+                    example: FE004
+                  mobileNo:
+                    type: string
+                    example: '1234567899'
+                  userTypeName:
+                    type: string
+                    example: Field Executive
+                  hubCode:
+                    type: string
+                    example: dc-05
+                  serviceProviderCode:
+                    type: string
+                    example: ''
+                  profileImage:
+                    type: string
+                    example: 'http://abc.com/image.jpg'
+      responses:
+        '200':
+          description: User creation response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    login:
+                      type: string
+                      example: user1_admin
+                    firstName:
+                      type: string
+                      example: Morphy
+                    lastName:
+                      type: string
+                      example: .
+                    email:
+                      type: string
+                      example: ''
+                    activated:
+                      type: boolean
+                      example: true
+                    employeeCode:
+                      type: string
+                      example: user1565_admin
+                    userTypeName:
+                      type: string
+                      example: Field Executive
+                    mobileNo:
+                      type: string
+                      example: '1234567899'
+                    hub:
+                      type: object
+                      properties:
+                        hubName:
+                          type: string
+                          example: HDC (SA)
+                        hubCode:
+                          type: string
+                          example: dc-05
+                        city:
+                          type: object
+                          properties:
+                            cityId:
+                              type: integer
+                              example: 2
+                            cityName:
+                              type: string
+                              example: Adelaide
+                    lastLoginTime:
+                      type: string
+                      nullable: true
+                      example: null
+                    createdAt:
+                      type: string
+                      format: date-time
+                      example: '2024-09-02 03:26:15'
+                    lastModifiedDate:
+                      type: string
+                      format: date-time
+                      example: '2024-09-02 03:26:15'
+                    profileImage:
+                      type: string
+                      example: 'http://abc.com/image.jpg'
+        '400':
+          description: Bad request due to invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid input provided
+        '401':
+          $ref: '#/components/responses/401'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: update-users
+    get:
+      summary: Get
+      description: The purpose of this API is to fetch the user information
+      tags:
+        - Users
+      responses:
+        '200':
+          description: User creation response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    login:
+                      type: string
+                      example: user1_admin
+                    firstName:
+                      type: string
+                      example: Morphy
+                    lastName:
+                      type: string
+                      example: .
+                    email:
+                      type: string
+                      example: ''
+                    activated:
+                      type: boolean
+                      example: true
+                    employeeCode:
+                      type: string
+                      example: user1565_admin
+                    userTypeName:
+                      type: string
+                      example: Field Executive
+                    mobileNo:
+                      type: string
+                      example: '1234567899'
+                    hub:
+                      type: object
+                      properties:
+                        hubName:
+                          type: string
+                          example: HDC (SA)
+                        hubCode:
+                          type: string
+                          example: dc-05
+                        city:
+                          type: object
+                          properties:
+                            cityId:
+                              type: integer
+                              example: 2
+                            cityName:
+                              type: string
+                              example: Adelaide
+                    lastLoginTime:
+                      type: string
+                      nullable: true
+                      example: null
+                    createdAt:
+                      type: string
+                      format: date-time
+                      example: '2024-09-02 03:26:15'
+                    lastModifiedDate:
+                      type: string
+                      format: date-time
+                      example: '2024-09-02 03:26:15'
+                    profileImage:
+                      type: string
+                      example: 'http://abc.com/image.jpg'
+        '400':
+          description: Bad request due to invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid input provided
+        '401':
+          $ref: '#/components/responses/401'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-users
+    parameters:
+      - schema:
+          type: string
+          example: v1
+          enum:
+            - v1
+        name: version
+        in: path
+        required: true
+        description: Version
+  '/{version}/routes':
+    post:
+      tags:
+        - Route Plan
+      summary: Create
+      description: |
+        This will create a request for preparing route as per the Routing Request data.
+        In response a token will be returned, that can be used later for fetching the prepared route.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                additionalProperties: false
+                properties:
+                  hubId:
+                    type: integer
+                    description: Unique id of the hub.
+                    example: 7
+                  orderDispatchDate:
+                    type: string
+                    format: date
+                    description: Date when the order should be dispatched (YYYY-MM-DD format). .
+                    example: '2024-06-14'
+                  hubCode:
+                    type: string
+                    description: Unique code of the hub.
+                    example: noida
+                  hubLocation:
+                    description: Geo-location of the hub.
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      lat:
+                        type: number
+                        description: Geographic latitude of the location.
+                        example: 28.4687508335536
+                      lng:
+                        type: number
+                        description: Geographic longitude of the location.
+                        example: 77.5198745727539
+                    required:
+                      - lat
+                      - lng
+                  hubTrafficVariation:
+                    type: integer
+                    description: Traffic variation percentage for complete hub.
+                    example: 5
+                  loopOptimizationConfig:
+                    type: object
+                    description: Config for using Loop Optimization.
+                    properties:
+                      clusteringGoal:
+                        type: string
+                        enum:
+                          - BALANCING
+                          - CENTROID_UTILIZATION
+                        default: CENTROID_UTILIZATION
+                        description: Clustering Goal for loop optimization. 'CENTROID_UTILIZATION' utilizes the most optimal number of vehicles while 'BALANCING' balances the orders evenly in the most optimal number of vehicles as per the algorithm.
+                        example: CENTROID_UTILIZATION
+                  problems:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Problem'
+                    description: Array of routing problems.
+                  referenceId:
+                    type: string
+                    description: It is a reference id particular to a routing request for a hub. It will be sent back with routing response to the requester.
+                    example: DPK3-202206141733
+                  includeDirections:
+                    type: boolean
+                    description: It will provide the directions of the routes in the form of latitude and longitude.
+                    example: false
+                  containsMultiPartOrders:
+                    type: boolean
+                    description: Specifies whether orders need to be treated as multi-part orders if groupId is present.
+                    example: false
+                  multiTripEnabled:
+                    type: boolean
+                    description: Specifies whether routes will be merged or not.
+                    example: false
+                  vehicles:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Vehicle'
+                    description: Vehicle to be used for completing orders.
+                required:
+                  - problems
+                  - referenceId
+                  - hubLocation
+                  - vehicles
+      responses:
+        '201':
+          description: Request for route preparation created successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    referenceId:
+                      type: string
+                      description: It is an id for reference received in a particular routing request for a hub.
+                    routingRequestToken:
+                      type: string
+                      description: Unique request token. Request can be tracked later using this token.
+                    message:
+                      type: string
+                      description: Message describing the success or error case.
+                    creditsEstimate:
+                      type: integer
+                      description: Estimated credit consumption for current routing request.
+                    creditsLeft:
+                      type: integer
+                      description: Credits left after current routing request.
+                    estimatedCompletionTime:
+                      type: integer
+                      description: Estimated time(in seconds) to complete the routing request.
+                  required:
+                    - referenceId
+                    - routing-request-token
+        '400':
+          description: Invalid request data.
+        '403':
+          description: Not enough permissions to access this resource.
+      operationId: create-route
+    get:
+      tags:
+        - Route Plan
+      summary: Get
+      description: |
+        This can be used to fetch an existing prepared route from the system.
+        If the route is still not prepared, it will return a response with valid status.
+      responses:
+        '200':
+          description: Prepared route fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: false
+                  required:
+                    - hubId
+                    - requestTimestamp
+                    - status
+                  properties:
+                    errorMessage:
+                      type: string
+                      description: Error message if any.
+                      example: 'Something went wrong, kindly check your data and try again'
+                    hubId:
+                      type: integer
+                      description: Unique Id of the hub.
+                      example: 1234
+                    requestTimestamp:
+                      type: string
+                      format: date-time
+                      description: The timestamp at which request for this routing was submitted.
+                      example: '2022-08-30 06:39:14'
+                    routes:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Route'
+                    status:
+                      type: string
+                      enum:
+                        - FAILED
+                        - LOOP_OPTI_IN_PROGRESS
+                        - PICKED_FOR_ROUTING
+                        - ROUTE_DT_IN_PROGRESS
+                        - ROUTE_PREPARE_IN_PROGRESS
+                        - SUCCESS
+                        - WAITING
+                      description: 'Current status of routing (waiting, failed, running or success).'
+                      example: SUCCESS
+                    totalTravelDistance:
+                      type: number
+                      description: Total travel distance of the routes in metres.
+                    totalTravelTime:
+                      type: number
+                      description: Total travel time of the routes in seconds.
+                    totalOrders:
+                      type: integer
+                      description: Total count of all orders.
+                    totalPickDelOrders:
+                      type: integer
+                      description: Total count of pickDel orders.
+                    spr:
+                      type: number
+                      description: Stops per route.
+                    sporh:
+                      type: number
+                      description: Stops per on route hour.
+                    unplannedOrders:
+                      type: array
+                      items:
+                        type: object
+                        additionalProperties: false
+                        description: Array of unplanned orders.
+                        required:
+                          - orderId
+                        properties:
+                          orderId:
+                            type: string
+                            description: Id of unplanned order.
+                          reasonCode:
+                            type: string
+                            description: 'Reason code for unplanned order:<br/>1 -> vehicle / order tag match not found and/or order weight  is exceeding the cut off value <br/>2 -> cannot be visited within time window <br/>3 -> does not fit into any vehicle due to capacity <br/>4 -> lat/lng is too far from rest of the stops,likely a geocoding error <br/>5 -> vehicle capacity not available(Smart Suggest) <br/>6 -> vehicle capacity or shift time not available(Smart Suggest) <br/>101 -> Vehicle''s minimum weight utilization not met <br/>102 -> Minimum route time constraint not met <br/>103 -> Order lies outside the time bound of vehicle coverage area.  <br/>104 -> left unplanned due to maximum working hour constraint  <br/>105 -> left unplanned due to location visit with gap constraint. <br/>106 -> left unplanned due to start time greater than end time constraint.'
+        '400':
+          description: Invalid request data.
+        '403':
+          description: Not enough permissions to access this resource.
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: routingToken
+          description: Routing token returned against a routing request.
+          required: true
+      operationId: get-routes
+    parameters:
+      - schema:
+          type: string
+          enum:
+            - v1
+          example: v1
+        name: version
+        in: path
+        required: true
+        description: Version
+  '/{version}/group-orders':
+    post:
+      tags:
+        - Route Plan
+      summary: Group Orders by Fence
+      description: |
+        This endpoint is useful for identifying the fence of orders and then group them accordingly over the identified fences.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - hubCode
+                - orders
+              properties:
+                hubCode:
+                  type: string
+                  description: Unique code of the hub.
+                  example: HUB_1
+                masterFence:
+                  type: string
+                  enum:
+                    - DELIVERY
+                    - PICKUP
+                  default: PICKUP
+                  description: Fence to consider in case of PICKUP_DELIVERY order with separate pickup and delivery fence.
+                  example: PICKUP
+                orders:
+                  description: List of orders for which fence needs to be identified.
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Order'
+      responses:
+        '201':
+          description: Request for grouping fencewise orders received successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  hub:
+                    type: object
+                    description: Object with basic details of the hub.
+                    properties:
+                      hubId:
+                        type: integer
+                        description: Unique Id of the hub.
+                        example: 2341
+                      hubCode:
+                        type: string
+                        description: Unique code of the hub.
+                        example: HUB_1
+                    required:
+                      - hubCode
+                      - hubId
+                  fences:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        fenceId:
+                          type: integer
+                          description: Unique Id of the fence.
+                          example: 3214
+                        orders:
+                          type: array
+                          items:
+                            type: string
+                          description: List of orders in this fence.
+                      required:
+                        - fenceId
+                        - orders
+                      title: Fence
+                    description: List of fences with orders.
+                  ordersWithoutFence:
+                    type: array
+                    items:
+                      type: string
+                    description: List of orders that are not covered by any configured fence.
+                required:
+                  - fences
+                  - hub
+                  - ordersWithoutFence
+        '400':
+          description: Invalid request data.
+        '403':
+          description: Not enough permissions to access this resource.
+      operationId: group-order-by-fence
+    parameters:
+      - schema:
+          type: string
+          enum:
+            - v1
+          example: v1
+        name: version
+        in: path
+        required: true
+        description: Version
+components:
+  securitySchemes:
+    Bearer:
+      type: http
+      scheme: bearer
+  schemas:
+    address:
+      type: object
+      description: Address/contact information
+      x-internal: true
+      required:
+        - code
+        - name
+        - line1
+        - contactNumber
+        - city
+        - pincode
+        - country
+      properties:
+        type:
+          type: string
+          description: Type of operation BUSINESS or CONSUMER
+        code:
+          type: string
+          description: Unique code of location
+          maxLength: 16
+        name:
+          type: string
+          description: Name of person
+        line1:
+          type: string
+          description: Address line 1
+        line2:
+          type: string
+          description: Address line 2
+        line3:
+          type: string
+          description: Address line 3
+        landmark:
+          type: string
+          description: Landmark
+        email:
+          type: string
+          description: Email
+        contactNumber:
+          type: string
+          description: Contact number
+        city:
+          type: string
+          description: City
+        state:
+          type: string
+          description: State province code
+          example: NSW
+        pincode:
+          type: string
+          description: pincode/postal code
+        county:
+          type: string
+          description: A county is a geographic region of a country
+        country:
+          type: string
+          description: |-
+            Country code
+            - The two-letter ISO Origin Country code is required
+        latitude:
+          type: string
+          description: Latitude
+        longitude:
+          type: string
+          description: Longitude
+    serviceableaddress:
+      type: object
+      description: Address/contact information for get rates and slots
+      title: Serviceability Address
+      required:
+        - code
+        - city
+        - pincode
+        - country
+      properties:
+        code:
+          type: string
+          description: Unique code of location
+        city:
+          type: string
+          description: City
+        state:
+          type: string
+          description: State province code
+        pincode:
+          type: string
+          description: pincode/postal code
+        county:
+          type: string
+          description: A county is a geographic region of a country
+        country:
+          type: string
+          description: |-
+            Country code
+            - The two-letter ISO Origin Country code is required
+      x-internal: true
+    packageDetails:
+      type: array
+      minItems: 1
+      description: Package details
+      x-internal: true
+      items:
+        type: object
+        required:
+          - packageId
+          - packageType
+          - packageValue
+          - width
+          - length
+          - height
+          - dimensionUom
+          - weight
+          - weightUom
+        properties:
+          packageId:
+            type: string
+            description: Unique package id
+            maxLength: 64
+            example: PKG9131122
+          packageType:
+            type: string
+            default: Carton
+            example: Carton
+            description: 'Type of parcel like BOX, BAG,'
+          packageDescription:
+            type: string
+            description: Package description
+            maxLength: 256
+            example: TV units
+          packageValue:
+            type: number
+            description: Package value
+            example: 34.44
+          width:
+            type: number
+            description: Width of package
+            example: 3.98
+          length:
+            type: number
+            description: Length of package
+            example: 4.12
+          height:
+            type: number
+            description: Height of package
+            example: 2.94
+          dimensionUom:
+            description: 'Lnegth unit of measure IN, CM'
+            example: IN
+            enum:
+              - CM
+              - IN
+              - MM
+          weight:
+            type: number
+            description: Weight of package
+            example: 5.98
+          weightUom:
+            enum:
+              - KG
+              - LB
+            description: 'Weight unit of measure KG, LB'
+          volume:
+            type: number
+            description: Package volume
+            example: 12.01
+          volumeUom:
+            description: Volumn unit of measure CCN
+            type: string
+            maxLength: 3
+            example: MM3
+    skuDetails:
+      type: array
+      description: The SKU (stock keeping unit) identifier for the product associated with this line item.
+      x-internal: true
+      items:
+        type: object
+        required:
+          - code
+          - name
+          - quantity
+        properties:
+          code:
+            type: string
+            description: Unique code of SKU as per WMS
+            example: LPN04
+          name:
+            type: string
+            description: Name for SKU item
+            maxLength: 64
+            example: 021 Reserve Cabernet Sauvignon
+          hsnName:
+            type: string
+            description: Special identification number that can be used to determine a variety of information about a product.
+          quantity:
+            type: integer
+            description: The quantity of product ordered.
+            default: 0
+            example: 6
+          uom:
+            type: string
+            description: The sku quantity unit of measure.
+            example: BOX
+            default: BOX
+          unitPrice:
+            type: number
+            description: SKU unit price
+            example: 13.91
+          value:
+            type: number
+            description: SKU value
+            example: 12.91
+          weight:
+            type: number
+            description: SKU weight
+            example: 2.98
+          weightUom:
+            type: string
+            description: SKU weight unit of measure
+            example: KG
+          description:
+            type: string
+            description: SKU description
+            maxLength: 128
+            example: Water Bottle - Pack of Six
+          imageUrl:
+            type: string
+            description: Item image URL
+            example: 'https://example.com/image.jpg'
+          packageId:
+            type: string
+            description: Associated package id.
+            maxLength: 64
+            pattern: PK0912312122
+    Webhooks:
+      title: Webhooks
+      type: object
+      description: |
+        Receive real time updates of Shipment or Order.
+      x-tags:
+        - Trace & Trace
+      x-webhook:
+        x-webhooks:
+          status-updates:
+            post:
+              summary: Status Updates
+              description: |
+                Receive real time updates of Shipment or Order. The payload consumes all mode of modality like Road, Air, Rail, Ocean, etc.
+
+                **Note**: [Tracking Subcription](#operation/get-tracking-subscribe) is mandatory for triggering webhooks
+              tags:
+                - Tracking
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/Webhooks'
+              responses:
+                '200':
+                  description: Return a 200 status to indicate that the data was received successfully
+      required:
+        - orderNo
+        - type
+        - value
+        - statusReceivedAt
+        - lastUpdatedAt
+        - statusIdentifierValue
+        - fareyeStatus
+        - fareyeStatusCode
+        - fareyeSubStatus
+      properties:
+        orderNo:
+          type: string
+          description: The unique number assigned to the Order in shipper system.
+        type:
+          type: string
+          default: Tracking
+          example: Tracking
+          description: Status fetched by tracking/consignment/order number.
+        value:
+          type: string
+          description: Tracking/AWB number value of carrier.
+        carrierCode:
+          type: string
+          description: 'Carrier code received during subscription. Ex: DHL'
+          example: ARAMEX
+        carrierStatus:
+          type: string
+          example: Delivered
+          description: Carrier status.
+        carrierStatusCode:
+          type: string
+          description: |-
+            Carrier status code.
+            Example: 000, Delivered
+          example: Delivered
+        carrierStatusDescription:
+          type: string
+          example: Shipment Delivered Successfully.
+          description: Carrier status description.
+          nullable: true
+        carrierSubStatus:
+          type: string
+          description: 'In case of Undelivered, the sub reason will come under carrier sub status.'
+          example: '016'
+          nullable: true
+        carrierSubStatusCode:
+          type: string
+          description: 'In case of Undelivered, the sub reason will come under carrier sub status.'
+          nullable: true
+        carrierSubStatusDescription:
+          type: string
+          description: Failure sub status code description.
+          example: Consignee not available.
+          nullable: true
+        statusReceivedAt:
+          type: string
+          description: 'Date of the event, It can be any date time format.'
+          example: '23-Jan-2020 14:23:22'
+        eventTimezone:
+          type: string
+          description: Timezone of event is updated.
+        locationCode:
+          type: string
+          example: DL112
+          description: Location code where status is updated.
+          nullable: true
+        locationName:
+          type: string
+          description: Location name where status is updated.
+          example: Delhi
+          nullable: true
+        latitude:
+          type: number
+          description: |-
+            Event update location latitude.
+            Default 0
+          default: 0
+          example: 23.34345
+        longitude:
+          type: number
+          description: |-
+            Event update location longitude.
+            Default 0
+          default: 0
+          example: 77.121
+        lastUpdatedAt:
+          type: string
+          description: Current Time Stamp
+          format: 'yyyy-MM-dd HH:mm:ss'
+        statusIdentifierValue:
+          type: string
+          description: Identifier for forward/reverse shipment(if received from carrier)
+          default: FORWARD
+          example: FORWARD
+          nullable: true
+        carrierStatusTimeGmt:
+          type: string
+          description: This field is for internal use only.
+          format: 'yyyy-MM-dd HH:mm:ss'
+          example: '2022-01-07 13:31:00'
+        fareyeStatus:
+          type: string
+          description: |-
+            FarEye status will be added only if the status mapping is done in the carrier list otherwise it will blank.
+            FarEye status is equivalent to Milestone Status. please check ERP Events for more details.
+          example: Delivered
+          nullable: true
+        fareyeStatusCode:
+          type: string
+          example: Delivered
+          description: |-
+            FarEye status code will be added only if the status mapping is done in the carrier list otherwise it will blank.
+            FarEye status is equivalent to Milestone code. please check ERP Events for more details.
+          nullable: true
+        fareyeStatusDescription:
+          type: string
+          description: |-
+            FarEye status description will be added only if the status mapping is done in the carrier list otherwise it will blank.
+            FarEye status is equivalent to Milestone Description. please check ERP Events for more details.
+          example: Shipment delivered successfully.
+          nullable: true
+        fareyeSubStatus:
+          type: string
+          description: |-
+            FarEye sub status will be added only if the status mapping is done in the carrier list otherwise it will blank.
+            FarEye status is equivalent to Event name. please check ERP Events for more details.
+          nullable: true
+        fareyeSubStatusCode:
+          type: string
+          description: |-
+            FarEye sub status code will be added only if the status mapping is done in the carrier list otherwise it will blank.
+            FarEye status is equivalent to Event code. please check ERP Events for more details.
+          nullable: true
+        fareyeSubStatusDescription:
+          type: string
+          description: |-
+            FarEye sub status description will be added only if the status mapping is done in the carrier list otherwise it will blank.
+            FarEye status is equivalent to Event Description. please check ERP Events for more details.
+          nullable: true
+        extraInfo:
+          type: object
+          description: 'Extra information object has constant fields, It cannot be modified or added new fields.'
+          nullable: true
+          properties:
+            comments:
+              type: string
+              description: Comments(if received from carrier)
+              nullable: true
+            promisedDeliveryDate:
+              type: string
+              description: Promised delivery date(if received from carrier)
+              nullable: true
+            expectedDeliveryDate:
+              type: string
+              description: Expected delivery date(if received from carrier)
+              nullable: true
+            receivedBy:
+              type: string
+              description: Received by person(if received from carrier)
+              nullable: true
+            relation:
+              type: string
+              description: Relation of person(if received from carrier)
+              nullable: true
+            pod:
+              type: array
+              description: Electronic proof of delivery(if received from carrier)
+              nullable: true
+              items:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    description: 'type. Default will be POD, if not present'
+                    enum:
+                      - POD
+                      - SIGNATURE
+                  url:
+                    type: string
+                    description: URL value
+            signature:
+              type: string
+              description: Signature image URL(if received from carrier)
+              deprecated: true
+            customerCode:
+              type: string
+              description: Customer code(if received from carrier)
+              nullable: true
+        fareyeEta:
+          type: string
+          description: In case FarEye provides ETA.
+          nullable: true
+        stopId:
+          type: string
+          description: |-
+            The stop number to which this status update corresponds, if any. For example, a status update with status code 'DEPARTURE' will always have this field populated with the stop number the vehicle is at.
+            Note: Mandatory in case of shipment journey updates.
+          default: '0'
+          example: '1'
+        driverName:
+          type: string
+          description: Driver Name.
+          example: Jsohn
+        vehicleNumber:
+          type: string
+          description: 'Note: Mandatory in case of shipment journey updates.'
+          example: DL12AAAxxxx
+        info:
+          type: object
+          description: Any custom fields will be added in this info object.
+          nullable: true
+        itemList:
+          type: array
+          items:
+            type: object
+            properties:
+              itemReferenceNumber:
+                type: string
+              itemCode:
+                type: string
+              itemName:
+                type: string
+              itemStatus:
+                type: string
+              itemStatusCode:
+                type: string
+              statusTime:
+                type: string
+              carrierStatusTimeGmt:
+                type: string
+                format: 'yyyy-MM-dd HH:mm:ss'
+    Route-Plan:
+      title: Route-Plan
+      type: array
+      description: |
+        The Route Plan Details API is designed to provide the Warehouse Management System (WMS) with planned route details. This API facilitates the sharing of routing information, ensuring that the WMS has accurate and up-to-date route plans for efficient logistics and warehouse operations.
+
+        The request will be posted to the provided endpoint by the client.
+      items:
+        type: object
+        properties:
+          routeName:
+            type: string
+            example: ABCA
+            description: Route name
+          routeId:
+            type: string
+            example: 750-1
+            description: Route id
+          dispatchDate:
+            type: string
+            format: date
+            example: '2024-07-08'
+            description: Dipatch date
+          hubCode:
+            type: string
+            example: SD-10
+            description: Facility/Hub code
+          routeStartTime:
+            type: string
+            example: '00:01:00'
+            description: Route start time
+          routeEndTime:
+            type: string
+            example: '13:19:38'
+            description: Route endtime
+          totalTravelTime:
+            type: number
+            example: 47782.8
+            description: Total travel time
+          totalPlannedDistance:
+            type: string
+            example: '3002.00'
+            description: Total planned distance
+          vehicleName:
+            type: string
+            example: 6 wheeler
+            description: Vehicle name
+          vehicleMode:
+            type: string
+            example: big_truck
+            description: Vehicle mode
+          loadingTime:
+            type: string
+            example: null
+            description: Loading time
+          breakTime:
+            type: string
+            example: null
+            description: Break time
+          serviceProviderCode:
+            type: string
+            example: ''
+            description: Delivery service provided code
+          jobs:
+            type: array
+            description: List of shipments/jobs
+            items:
+              type: object
+              properties:
+                referenceNumber:
+                  type: string
+                  example: nameTesting1
+                  description: Unique ordernumber or reference number
+                slot:
+                  type: string
+                  example: '04:09:30 - 00:00:00'
+                  description: Selected slot
+                eta:
+                  type: string
+                  example: '04:09:30'
+                  description: Estimated time of arrival
+                serviceTime:
+                  type: number
+                  example: 1
+                  description: Service time
+                weight:
+                  type: number
+                  example: 1
+                  description: Weight of shipment
+                jobLatitude:
+                  type: number
+                  format: double
+                  example: 26.5447730438196
+                  description: Latitude of shipment
+                jobLongitude:
+                  type: number
+                  format: double
+                  example: 80.4202443602574
+                  description: Longitude of shipment
+                geocodeAccuracy:
+                  type: string
+                  example: Accurate Location
+                  description: Geo accuracy
+                sequence:
+                  type: integer
+                  example: 1
+                  description: 'Shipment/job sequence '
+                pallets:
+                  type: integer
+                  example: 0
+                  description: Pallets
+                fenceName:
+                  type: string
+                  example: ABC + test1
+                  description: Geo fence name
+                empCode:
+                  type: string
+                  example: mohit_admin
+                  description: Assigned driver or employee code
+                jobType:
+                  type: string
+                  example: DELIVERY
+                  description: 'Type of transaction/job type '
+                travelTime:
+                  type: number
+                  example: 14911
+                  description: Travel time
+                travelDistance:
+                  type: number
+                  example: 339909
+                  description: 'Travel distance '
+                plannedRouteId:
+                  type: string
+                  example: 750-1
+                  description: Planned route id
+                volume:
+                  type: number
+                  example: 0
+                  description: Volume of shipment
+                groupId:
+                  type: string
+                  example: RH-01
+                  description: Group id
+                loadingTime:
+                  type: number
+                  example: 0
+                  description: Loading time
+    Order:
+      type: object
+      properties:
+        orderId:
+          type: string
+          description: Unique Id of the order.
+          example: ORDER_2022101001
+        orderType:
+          type: string
+          description: 'PICKUP, DELIVERY or PICKUP_DELIVERY as per order type.'
+          enum:
+            - DELIVERY
+            - PICKUP
+            - PICKUP_DELIVERY
+          default: DELIVERY
+          example: DELIVERY
+        pickupDetails:
+          type: object
+          description: Pickup details of the order.
+          additionalProperties: false
+          properties:
+            location:
+              type: object
+              description: Pickup location of the order.
+              additionalProperties: false
+              properties:
+                lat:
+                  type: number
+                  description: Geographic latitude of the location.
+                  example: 32.42313
+                lng:
+                  type: number
+                  description: Geographic longitude of the location.
+                  example: 82.42313
+              required:
+                - lat
+                - lng
+          required:
+            - location
+        deliveryDetails:
+          type: object
+          description: Delivery details of the order.
+          additionalProperties: false
+          properties:
+            location:
+              type: object
+              description: Delivery location of the order.
+              additionalProperties: false
+              properties:
+                lat:
+                  type: number
+                  description: Geographic latitude of the location.
+                  example: 32.42313
+                lng:
+                  type: number
+                  description: Geographic longitude of the location.
+                  example: 82.42313
+              required:
+                - lat
+                - lng
+          required:
+            - location
+      required:
+        - orderId
+        - orderType
+      title: Order
+    Problem:
+      type: object
+      additionalProperties: false
+      properties:
+        avoidMedium:
+          type: string
+          enum:
+            - FERRY
+            - MOTORWAY
+            - TOLLS
+          description: Modes to avoid.
+          example: TOLLS
+        endLocationType:
+          type: string
+          enum:
+            - STARTING_POINT
+            - FARTHEST_POINT
+            - OPTIMAL_POINT
+          description: Defines the location where the vehicle needs to end its route.
+          default: OPTIMAL_POINT
+          example: OPTIMAL_POINT
+        fenceId:
+          type: integer
+          description: Unique geo-fence id (will be present in response for every route).
+          example: 10
+        fleets:
+          type: array
+          items:
+            type: object
+            properties:
+              vehicleCount:
+                type: integer
+                description: Number of vehicles.
+                example: 1
+              vehicleId:
+                type: integer
+                description: Unique Id of the vehicle to use.
+                example: 1
+            required:
+              - vehicleCount
+              - vehicleId
+          description: Array of fleet objects. Fleet consist of vehicles.
+        leaveByTimeAllowed:
+          type: boolean
+          description: 'Leave By time feature is to skip the waiting time spent by the driver before delivering the 1st order in the route plan from his start time. This means if the route start time is 1:00 AM, first order delivery time is 5:00 AM and it took only 30 mins to reach the first delivery location then the driver can start at 4:30 AM instead of 1:00 AM.'
+          example: false
+        loopOptimizationSuggestionConfig:
+          type: object
+          properties:
+            addVehicles:
+              type: boolean
+              description: If orders remain unplanned then add vehicles.
+              example: false
+            extendVehicles:
+              type: boolean
+              description: 'If orders are unplanned extend the vehicle working time by 25% (maximum) if possible, maximum extension by value will be 150 mins. Extend vehicles option will always take priority over add vehicles whenever possible.'
+              example: false
+            distributeJobs:
+              type: boolean
+              description: If orders need to be distributed evenly among the available vehicles.
+              example: false
+        driverWorkingRules:
+          type: object
+          properties:
+            maximumWorkingHour:
+              type: number
+              minimum: 1
+              description: Minimum value allowed for 'maximumWorkingHour' is 1.
+            minimumWorkingHour:
+              type: number
+              minimum: 0
+              description: Minimum value allowed for 'minimumWorkingHour' is 0.
+            multiDayRoutingSlotSplit:
+              type: boolean
+              description: Indicates whether multi-day routing slot split is enabled.
+            maxWorkingMinutesBeforeBreak:
+              type: integer
+              minimum: 1
+              description: Minimum value allowed for 'maxWorkingMinutesBeforeBreak' is 1.
+            breakDurationMinutes:
+              type: integer
+              minimum: 1
+              description: Minimum value allowed for 'breakDurationMinutes' is 1.
+            operationalHoursInMinutes:
+              type: array
+              items:
+                type: integer
+                minimum: 0
+                maximum: 1440
+                description: An array representing operational hours in minutes.
+                example: 60
+              description: Array of operational hours in minutes. Add 2 value start time and end time
+          required:
+            - maximumWorkingHour
+            - minimumWorkingHour
+            - multiDayRoutingSlotSplit
+            - maxWorkingMinutesBeforeBreak
+            - breakDurationMinutes
+            - operationalHoursInMinutes
+        multipartIncremental:
+          type: integer
+          description: Incremental time in seconds to be used for multi-part orders. This will add incremental time between consecutive multi-part orders at same location.
+          example: 60
+        mode:
+          type: string
+          enum:
+            - BICYCLE
+            - CAR
+            - FOOT
+            - SCOOTER
+            - SMALL_TRUCK
+            - TRUCK
+          default: CAR
+          description: Travelling mode available for this problem.
+          example: CAR
+        orders:
+          type: array
+          items:
+            $ref: '#/components/schemas/Order'
+          description: 'Array of orders, where each order is a particular visit.'
+        routingGoal:
+          type: string
+          enum:
+            - BALANCE
+            - UTILIZE
+          description: Defines if the vehicle usage needs to be utilized or balanced.
+          default: UTILIZE
+          example: UTILIZE
+        startLocation:
+          type: object
+          additionalProperties: false
+          properties:
+            lat:
+              type: number
+              description: Geographic latitude of the location.
+              example: 28.4687508335536
+            lng:
+              type: number
+              description: Geographic longitude of the location.
+              example: 77.5198745727539
+          description: Start location of fleet in this problem.
+          required:
+            - lat
+            - lng
+        trafficVariation:
+          type: integer
+          description: Traffic variation in percentage (Positive for fast / Negative for slow).
+          example: 5
+        vehicleWiseStartLocationEnabled:
+          type: boolean
+          description: Indicates if the vehicle needs to start from its own location.
+          example: false
+      required:
+        - fleets
+        - orders
+    Vehicle:
+      type: object
+      additionalProperties: false
+      properties:
+        cutOffWeight:
+          type: number
+          description: Maximum weight/volume of a single order which can be carried by the vehicle.
+          example: 100
+        multiTripEnabled:
+          type: boolean
+          description: Specifies whether routes of this vehicle will be merged or not.
+          example: false
+        loadingTime:
+          type: integer
+          description: Loading time of vehicle in seconds.
+          example: 1800
+        operationCost:
+          type: number
+          description: Fixed cost for the vehicle.
+          example: 2
+        coverage:
+          type: object
+          properties:
+            timeBound:
+              type: integer
+              description: Time in seconds bounding the operational coverage area of vehicle.
+              example: 5400
+          description: Coverage details of the vehicle bounding its operational area with reference to its start location.
+        palletsCapacity:
+          type: integer
+          description: Pallets capacity of the vehicle.
+          example: 50
+        shift:
+          type: object
+          properties:
+            endTime:
+              type: integer
+              description: End time of the time-window in seconds.
+              example: 72000
+            startTime:
+              type: integer
+              description: Start time of the time-window in seconds.
+              example: 36000
+          description: 'Shift Start Time & End Time, use to specify when the driver starts driving and when he/she needs to be finish driving.'
+        startLocation:
+          description: Start location of the vehicle.
+          type: object
+          additionalProperties: false
+          properties:
+            lat:
+              type: number
+              description: Geographic latitude of the location.
+              example: 28.4687508335536
+            lng:
+              type: number
+              description: Geographic longitude of the location.
+              example: 77.5198745727539
+          required:
+            - lat
+            - lng
+        tag:
+          type: string
+          description: 'It is a skill, vehicle can complete orders which have same skill tag or no tag.'
+          example: TAG_1
+        variableCost:
+          type: number
+          description: Per meter cost for vehicle.
+          example: 2
+        vehicleBreak:
+          type: object
+          properties:
+            endTime:
+              type: integer
+              description: End time of the time-window in seconds.
+              example: 56000
+            startTime:
+              type: integer
+              description: Start time of the time-window in seconds.
+              example: 55000
+          description: Break Start Time & End Time for this vehicle's driver.
+        vehicleId:
+          type: integer
+          description: Unique id of vehicle.
+          example: 1
+        waitingTimeCost:
+          type: number
+          description: Waiting time cost of the vehicle.
+          example: 300
+        weightCapacity:
+          type: number
+          description: Weight or volume vehicle can carry.
+          example: 100
+      required:
+        - vehicleId
+        - shift
+        - weightCapacity
+    Route:
+      type: object
+      additionalProperties: false
+      properties:
+        fenceId:
+          type: integer
+          description: Id of the fence which was sent in the routing problem.
+        orders:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              orderId:
+                type: string
+                description: Unique id of the order or one of start/end/break.
+              eta:
+                type: integer
+                description: Estimated time of arrival in seconds starting from midnight.
+              location:
+                type: object
+                additionalProperties: false
+                properties:
+                  lat:
+                    type: number
+                    description: Geographic latitude of the location.
+                  lng:
+                    type: number
+                    description: Geographic longitude of the location.
+                description: Geographic location of the order.
+                required:
+                  - lat
+                  - lng
+              orderServingTimeWindow:
+                type: object
+                properties:
+                  endTime:
+                    type: integer
+                    description: End time of the time-window in seconds.
+                  startTime:
+                    type: integer
+                    description: Start time of the time-window in seconds.
+                description: Order serving start time & end time.
+                required:
+                  - startTime
+                  - endTime
+              orderType:
+                type: string
+                enum:
+                  - DELIVERY
+                  - PICKUP
+                  - PICK_DEL_DELIVERY
+                  - PICK_DEL_PICKUP
+                description: Represents the Order type (Pickup or Delivery).
+              serviceTime:
+                type: number
+                description: Service time of the order in seconds.
+              travelDistance:
+                type: number
+                description: Distance from last location to this location in metres.
+              travelTime:
+                type: integer
+                description: Travelling time (in seconds) from last to this location.
+            required:
+              - orderId
+              - location
+              - orderType
+              - travelDistance
+              - travelTime
+          description: Array of orders in this route.
+        routeId:
+          type: string
+          description: Unique id of the route.
+        routeName:
+          type: string
+        totalTravelDistance:
+          type: number
+          description: Total travel distance of the route in metres.
+        totalTravelTime:
+          type: number
+          description: Total travel time of the route in seconds.
+        totalOrders:
+          type: integer
+          description: Total count of all orders.
+        totalPickDelOrders:
+          type: integer
+          description: Total count of pickDel orders.
+        spr:
+          type: number
+          description: Stops per route.
+        sporh:
+          type: number
+          description: Stops per on route hour.
+        totalWeight:
+          type: number
+          description: Total weight of orders.
+        totalPallets:
+          type: number
+          description: Total pallets of orders.
+        totalVolume:
+          type: number
+          description: Total volume of orders.
+        weightUtilisation:
+          type: number
+          description: Weight utilisation of vehicle.
+        palletsUtilisation:
+          type: number
+          description: Pallets utilisation of vehicle.
+        volumeUtilisation:
+          type: number
+          description: Volume utilisation of vehicle.
+        shiftUtilisation:
+          type: number
+          description: Shift utilisation of vehicle.
+        vehicleId:
+          type: number
+          description: Id to identify the type of vehicle
+          example: 1
+        routePath:
+          type: string
+          description: Encoded polyline overview of the route.
+          example: '{dluC{ue|GxCY'
+      required:
+        - orders
+        - routeId
+        - routeName
+        - totalTravelDistance
+        - totalTravelTime
+        - vehicleId
+  responses:
+    '400':
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                timestamp: '2024-07-17T13:23:55.490508'
+                status: BAD REQUEST
+                errors:
+                  - The consignment number can not be null
+                message: Validation Error
+                successCount: 0
+                failCount: 1
+            required:
+              - timestamp
+              - status
+              - errors
+            properties:
+              timestamp:
+                type: string
+                description: Current timestamp.
+                example: '2024-07-17T13:23:55.490508'
+              status:
+                type: string
+                example: BAD REQUEST
+                description: HTTP Response Name
+              errors:
+                type: array
+                description: List of errors.
+                items:
+                  type: string
+              message:
+                type: string
+                description: Error message like Data Vaildation Failed.
+                example: Validation Failed
+              successCount:
+                type: integer
+                description: Success count.
+                example: 1
+              failCount:
+                type: integer
+                description: Failed count.
+                example: 1
+          examples:
+            Example 1:
+              value:
+                timestamp: '2024-07-17T13:23:55.490508'
+                status: BAD REQUEST
+                errors:
+                  - The order number can not be null.
+                message: Validation Error
+                successCount: 0
+                failCount: 1
+    '401':
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                timestamp: '2024-07-17T13:23:55.490508'
+                status: BAD REQUEST
+                errors:
+                  - The order number can not be null.
+                message: Validation Error
+                successCount: 0
+                failCount: 1
+            properties:
+              message:
+                type: string
+                description: Error message like Data Vaildation Failed.
+                example: Validation Failed
+          examples:
+            Example 1:
+              value:
+                message: Unauthorized
+    '500':
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                timestamp: '2024-07-17T13:23:55.490508'
+                status: BAD REQUEST
+                errors:
+                  - The order number can not be null.
+                message: Validation Error
+                successCount: 0
+                failCount: 1
+            required:
+              - errors
+            properties:
+              errors:
+                type: array
+                description: List of errors.
+                items:
+                  type: string
+              message:
+                type: string
+                description: Error message like Data Vaildation Failed.
+                example: Validation Failed
+          examples:
+            Example 1:
+              value:
+                timestamp: '2024-07-17T13:23:55.490508'
+                status: INTERNAL SERVER ERROR
+                errors:
+                  - Issue with connections
+                message: Internal Error
+                successCount: 0
+                failCount: 1
+x-webhooks:
+  status-updates:
+    post:
+      summary: Status Updates
+      description: |
+        Receive real time updates of Shipment or Order. The payload consumes all mode of modality like Road, Air, Rail, Ocean, etc.
+
+        The request will be posted to the provided endpoint by the client.
+
+        **Note**: [Tracking Subcription](#operation/get-tracking-subscribe) is mandatory for triggering webhooks
+      tags:
+        - Track & Trace
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Webhooks'
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+  route-plan:
+    post:
+      summary: Route plan
+      description: |
+        The route plan details API is designed to provide the Warehouse Management System (WMS) with planned route details. This API facilitates the sharing of routing information, ensuring that the WMS has accurate and up-to-date route plans for efficient logistics and warehouse operations. 
+
+        **Note**: The request will be posted to the provided endpoint by the client.
+      tags:
+        - Route Plan
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Route-Plan'
+      responses:
+        '200':
+          description: Return a 200 status to indicate that the data was received successfully
+security:
+  - Bearer: []

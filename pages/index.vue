@@ -1,39 +1,37 @@
 <template>
   <v-app>
     <v-container fluid>
+
+
       <!-- Header -->
       <h1 class="text-center mb-4" style="color: #FF5733; font-weight: bold; font-size: 2.5em;">
-        OpenAPI YAML File Uploader
+        .YAML File Uploader
       </h1>
-      <v-select v-model="selectedUploadType" :items="uploadOptions" item-title="name" item-value="value"
-        label="Select Upload Type" outlined class="mb-4"
-        style="background-color: #ffffff; border-radius: 8px; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);" />
 
-        
-      <div v-if="selectedUploadType === 'file'">
-        <v-file-input label="Upload OpenAPI YAML File" accept=".yaml,.yml" @change="onFileChange" outlined class="mb-4"
-          style="background-color: #ffffff; border-radius: 8px; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);" />
+
+      <div class="d-flex justify-center mb-4">
+
+        <v-file-input v-if="!apiUrl" label="Upload OpenAPI YAML File" accept=".yaml,.yml" @change="onFileChange"
+          outlined class="mb-4"
+          style="background-color: #ffffff; border-radius: 8px; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);"
+          loading-text="Uploading..." />
+
+
+        <v-text-field v-model="apiUrl" label="Enter URL" outlined class="mb-4"
+          style="background-color: #ffffff; border-radius: 8px; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);"
+          prepend-icon="mdi-link" @input="loadFromUrl" />
       </div>
 
-      <div v-else-if="selectedUploadType === 'url'">
-        <v-text-field v-model="apiUrl" label="Enter URL of OpenAPI YAML" outlined class="mb-4"
-          style="background-color: #ffffff; border-radius: 8px; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);" />
-        <v-btn @click="loadFromUrl" color="primary">Load from URL</v-btn>
-      </div>
-
-      <div v-else-if="selectedUploadType === 'git'">
-        <v-text-field v-model="gitLink" label="Enter Git Repository Link" outlined class="mb-4"
-          style="background-color: #ffffff; border-radius: 8px; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);" />
-        <v-btn @click="loadFromGit" color="primary">Load from Git</v-btn>
-      </div>
 
 
 
 
       <!-- Main Content Card -->
+
+
       <v-card v-if="parsedContent" class="mt-5" elevation="10" style="border-radius: 15px; padding: 20px;">
         <v-card-text>
-          <!-- Tabs Navigation -->
+
           <v-tabs v-model="activeSection" background-color="#f2f2f2" color="primary" class="rounded-0 px-2 py-1" dark>
             <v-tab value="ApiInfo" class="rounded font-weight-bold text-body-1">API Info</v-tab>
             <v-tab value="servers" class="rounded font-weight-bold text-body-1">Servers</v-tab>
@@ -44,34 +42,56 @@
             <v-tab value="code" class="rounded font-weight-bold text-body-1">Code</v-tab>
             <v-tab value="overview" class="rounded font-weight-bold text-body-1">Overview</v-tab>
           </v-tabs>
-
-          <!-- API Info Section -->
           <div v-if="activeSection === 'ApiInfo'">
-            <v-card class="api-info-card mt-4" elevation="2"
-              style="background-color: #f9f9f9; padding: 20px; border-radius: 12px;">
+            <v-card class="api-info-card" elevation="2">
               <v-card-text>
-                <div class="api-info-header mb-4 text-center">
-                  <v-text-field v-model="apiInfo.title" label="API Title" outlined hide-details prepend-icon="mdi-api"
-                    class="api-title font-weight-bold text-center" style="color: #FF5733; font-size: 1.4em;" />
-                </div>
 
-                <div class="api-info-row mb-3" style="display: flex; align-items: center;">
-                  <strong style="color: #666; width: 19px; font-size: 1.1em;"></strong>
-                  <v-text-field v-model="apiInfo.version" label="Version" outlined hide-details
-                    prepend-icon="mdi-information-outline" class="api-version" style="flex: 1;" />
-                </div>
+                <h3 style="color: #FF5733; text-align: center; font-weight: bold;">
+                  <v-text-field v-model="apiInfo.title" label="API Title" outlined hide-details prepend-icon="mdi-api"
+                    class="api-title" />
+                </h3>
+
 
                 <div class="api-info-row">
-                  <strong style="color: #666; font-size: 1.1em;">Description:</strong>
-                  <div class="description-markdown mt-2"
-                    style="background-color: #ffffff; padding: 24px; border-radius: 7px; border: 1px solid #ddd;">
-                    <Markdown :markdown="apiInfo.description" />
+                  <strong>Version:</strong>
+                  <v-text-field v-model="apiInfo.version" label="Version" outlined hide-details
+                    prepend-icon="mdi-information-outline" class="api-version"></v-text-field>
+                </div>
+
+
+                <div class="api-info-row">
+                  <strong>Description:</strong>
+
+                  <div class="editor-toolbar">
+                    <!-- Bold Button -->
+                    <v-btn @click="applyFormat('b')" v-tooltip.top="'Bold'">
+                      <v-icon left>mdi-format-bold</v-icon>
+                    </v-btn>
+
+                    <!-- Italic Button -->
+                    <v-btn @click="applyFormat('i')" v-tooltip.bottom="'Italic'">
+                      <v-icon left>mdi-format-italic</v-icon>
+                    </v-btn>
+
+                    <!-- Strikethrough Button -->
+                    <v-btn @click="applyFormat('strike')" v-tooltip="'Strikethrough'">
+                      <v-icon left>mdi-format-strikethrough</v-icon>
+                    </v-btn>
+
+                    <!-- Insert Link Button -->
+                    <v-btn @click="applyFormat('link')" v-tooltip="'Insert Link'">
+                      <v-icon left>mdi-link-variant</v-icon>
+                    </v-btn>
                   </div>
+
+                  <!-- Editable Content -->
+                  <div ref="descriptionField" contenteditable="true" @blur="updateDescription"
+                    class="description-editable" :innerHTML="apiInfo.description"
+                    style="min-height: 150px; border: 3px solid #ccc; padding: 12px; white-space: pre-wrap;"></div>
                 </div>
               </v-card-text>
             </v-card>
           </div>
-
 
 
 
@@ -83,11 +103,11 @@
               Add Server
             </v-btn>
 
-            <!-- Dialog for Adding/Editing Server -->
+            <!-- Add/Edit Server Dialog -->
             <v-dialog v-model="showingAddServer" max-width="600px" transition="dialog-bottom-transition">
               <v-card>
                 <v-card-title class="headline" style="color: #FF5733; font-weight: bold; font-size: 1.5rem;">
-                  <v-icon left>{{ isEditing ? 'mdi-pencil' : 'mdi-plus' }}</v-icon>
+                  <v-icon left v-if="isEditing">mdi-pencil</v-icon>
                   {{ isEditing ? 'Edit Server' : 'Add Server' }}
                 </v-card-title>
                 <v-card-text>
@@ -97,10 +117,9 @@
                     placeholder="Enter description" prepend-icon="mdi-comment" clearable />
                 </v-card-text>
                 <v-card-actions>
-                  <!-- Update Server Button with Delete Button Styles -->
                   <v-btn @click="isEditing ? updateServer() : addServer()" color="red" elevation="2"
                     style="border-radius: 25px; background-color: #FFCDD2; color: #FF5733; border: 1px solid #FFCDD2;">
-                    <v-icon left>{{ isEditing ? 'mdi-content-save' : 'mdi-plus' }}</v-icon>
+                    <v-icon left v-if="isEditing">mdi-pencil</v-icon>
                     {{ isEditing ? 'Update Server' : 'Save Server' }}
                   </v-btn>
                   <v-btn @click="showingAddServer = false"
@@ -112,29 +131,101 @@
               </v-card>
             </v-dialog>
 
+
+            <v-snackbar v-model="snackbar" color="#FF5733" top right :timeout="3000" class="custom-snackbar">
+              {{ snackbarMessage }}
+              <v-btn @click="snackbar = false" icon size="small" class="close-button">
+                <v-icon>mdi-close</v-icon>
+              </v-btn>
+            </v-snackbar>
+
+
+            <!-- Server List -->
             <v-data-table :headers="serverHeaders" :items="servers" hide-default-footer class="elevation-1 mb-4" dense>
               <template v-slot:item.actions="{ item, index }">
-                <!-- Updated Edit Button -->
                 <button type="button" aria-label="Edit Server" @click="editServer(index)"
                   class="v-btn v-btn--icon v-btn--outlined v-btn--tile"
                   style="background-color: white; border-radius: 25px; color: #FF5733;">
                   <v-icon size="24">mdi-pencil</v-icon>
                 </button>
 
-                <!-- Updated Delete Button -->
-                <button type="button" aria-label="Delete Server" @click="removeServer(index)"
+                <button type="button" aria-label="Delete Server" @click="confirmRemoveServer(index)"
                   class="v-btn v-btn--icon v-btn--outlined v-btn--tile"
                   style="background-color: white; border-radius: 25px; color: #D32F2F; border: 0px solid #FFCDD2;">
                   <v-icon size="24">mdi-delete</v-icon>
                 </button>
               </template>
             </v-data-table>
+
+
+            <v-dialog v-model="confirmationDialog" max-width="400px">
+              <v-card>
+                <v-card-title class="headline">
+                  <v-icon color="red" class="mr-2">mdi-alert-circle</v-icon> Are you sure?
+                </v-card-title>
+                <v-card-text>
+                  <v-icon color="grey darken-1" class="mr-2">mdi-information-outline</v-icon>
+                  Do you really want to delete this server? This action cannot be undone.
+                </v-card-text>
+                <v-divider></v-divider>
+                <v-card-actions class="justify-end">
+                  <v-btn @click="confirmationDialog = false" color="grey darken-1" outlined>
+                    <v-icon left>mdi-cancel</v-icon> Cancel
+                  </v-btn>
+                  <v-btn @click="removeServer" color="red" dark>
+                    <v-icon left>mdi-delete</v-icon> Delete
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
+
           </div>
 
 
-          <!-- Content for Paths -->
+          <div class="d-flex justify-start mt-4">
+    <!-- Toggle Preview Button (No Changes) -->
+    <div class="d-flex justify-end mt-4" style="position: absolute; top: 2px; right: 60px;">
+      <v-btn 
+        @click="togglePreview" 
+        class="mx-2"
+        style="border-radius: 8px; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);">
+        Preview
+      </v-btn>
+    </div>
+
+    <!-- Dialog for API Documentation Preview -->
+    <v-dialog v-model="isPreviewVisible" fullscreen persistent>
+      <v-card class="d-flex flex-column" style="height: 100vh; width: 100vw;">
+        
+        
+
+        <v-card-text class="flex-grow-1" style="overflow-y: auto; padding-top: 50px;">
+          <!-- ReDoc Preview Content -->
+          <div ref="redocContainer" class="redoc-container" style="height: calc(100vh - 50px);"></div>
+        </v-card-text>
+
+        <!-- Close Button -->
+        <v-card-actions style="position: absolute; bottom: 0; left: 0; right: 800px; z-index: 10; padding: 20px;">
+          <v-btn color="primary" @click="togglePreview" class="close-btn" elevation="10"
+            style="border-radius: 12px; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); transition: all 0.3s ease-in-out;">
+            Close
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  
+
+
+
+
+          </div>
+          <v-btn icon @click="toggleFullScreen" style="position: absolute; top: 10px; right: 10px; z-index: 1000;"
+            class="rounded-circle shadow-3">
+            <v-icon>mdi-fullscreen</v-icon>
+          </v-btn>
+
           <div v-if="activeSection === 'paths'" class="path-section">
-            <h2 class="text-h5" style="color: #FF5733 ; margin-bottom: 20px;"></h2>
+            <h2 class="text-h5" style="color: #FF5733 ; margin-bottom: 15px;"></h2>
 
             <div v-for="(path, index) in apiPaths" :key="index"
               class="path-item mb-4 border rounded-lg p-4 shadow-lg bg-white">
@@ -144,7 +235,6 @@
                 <v-icon>{{ activePathIndex === index ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
               </div>
 
-              <!-- Show details when the path is clicked -->
               <div v-if="activePathIndex === index" class="path-details mt-3">
                 <strong>Methods:</strong>
                 <div v-for="(method, mIndex) in path.methods" :key="mIndex" class="method-item mb-2">
@@ -154,7 +244,7 @@
 
 
 
-                <!-- Query Parameters Section -->
+
                 <div class="mt-3">
                   <strong>Query p:</strong>
                   <div v-for="(param, paramIndex) in path.methods[0].query" :key="paramIndex" class="query-param mb-2">
@@ -177,13 +267,13 @@
                     </v-row>
                   </div>
 
-                  <!-- Button to show form for adding query parameter -->
+
                   <v-btn @click="toggleAddQueryParamForm(index)" style="background-color: #FF5733; color: white;" small>
                     {{ showAddQueryParamForm[index] ? 'Cancel' : 'Add Query' }}
                   </v-btn>
 
 
-                  <!-- Form to add new query parameter -->
+
                   <v-expand-transition>
                     <div v-if="showAddQueryParamForm[index]" class="mt-2">
                       <v-row align="center" no-gutters>
@@ -206,7 +296,7 @@
                   </v-expand-transition>
                 </div>
 
-                <!-- Headers Section -->
+
                 <div class="mt-3">
                   <strong>Headers:</strong>
                   <div v-for="(header, headerIndex) in path.methods[0].headers" :key="headerIndex"
@@ -221,13 +311,13 @@
 
                   </div>
 
-                  <!-- Button to show form for adding header -->
+
                   <v-btn @click="toggleAddHeaderForm(index)" style="background-color: #FF5733; color: white;" small>
                     {{ showAddHeaderForm[index] ? 'Cancel' : 'Add Header' }}
                   </v-btn>
 
 
-                  <!-- Form to add new header -->
+
                   <v-expand-transition>
                     <div v-if="showAddHeaderForm[index]" class="mt-2">
                       <v-text-field v-model="newHeader.name" label="Header Name" outlined />
@@ -238,20 +328,20 @@
                   </v-expand-transition>
                 </div>
 
-                <!-- Body Section -->
+
                 <div class="mt-3">
                   <strong>Body:</strong>
                   <v-textarea v-model="path.methods[0].body" label="Body" outlined />
                 </div>
 
-                <!-- Delete Path Button -->
+
                 <v-btn @click.stop="removePath(index)" icon color="red" class="mt-2">
                   <v-icon>mdi-delete</v-icon>
                 </v-btn>
               </div>
             </div>
 
-            <!-- Add Path Form -->
+
             <v-btn @click="toggleAddPath" style="background-color: #FF5733; color: white;" class="mb-2">
               {{ showingAddPath ? 'Cancel' : 'Add Path' }}
             </v-btn>
@@ -366,20 +456,38 @@
 
           <!-- Content for Code Section -->
           <div v-if="activeSection === 'code'" class="vs-code-editor-container mt-4">
+
             <!-- Copy to Clipboard Button -->
-            <v-btn @click="copyToClipboard" color="primary" class="mt-2">
+            <v-btn @click="copyToClipboard" color="primary" class="mt-2 copy-btn" elevation="1"
+              @mouseover="hovered = true" @mouseleave="hovered = false">
               <v-icon left>mdi-content-copy</v-icon>
-              Copy YAML to Clipboard
+              <span :class="{ 'font-weight-bold': hovered }">Copy YAML to Clipboard</span>
             </v-btn>
 
+            <v-snackbar v-model="snackbarVisible" color="success" timeout="3000">
+              YAML copied to clipboard!
+              <v-btn color="white" @click="snackbarVisible = false">
+                Close
+              </v-btn>
+            </v-snackbar>
 
+
+
+
+            <v-tooltip bottom class="custom-tooltip">
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn @click="downloadYamlFile" class="download-btn mt-2" fab v-bind="attrs" v-on="on">
+                  <v-icon>mdi-download</v-icon>
+                </v-btn>
+              </template>
+              <span>Download</span>
+            </v-tooltip>
+
+            <!-- Monaco Editor -->
             <Monaco v-model="rawYAML" :title="'code editor'" :idname="'yaml'" :key="'yaml'" language="yaml"
               height="40" />
-
-
-
-
           </div>
+
 
           <!-- Overview Tab -->
           <v-card v-if="activeSection === 'overview'" class="mt-5" elevation="10" style="border-radius: 18px;">
@@ -399,6 +507,9 @@
               <div>
                 <strong>Description:</strong>
                 <v-textarea v-model="apiInfo.description" outlined readonly rows="12"></v-textarea>
+              </div>
+              <div>
+
               </div>
             </v-card-text>
           </v-card>
@@ -423,6 +534,7 @@ import Monaco from '@/components/core/Monaco';
 
 
 
+
 // Reactive variables
 const parsedContent = ref('');
 const activeSection = ref('code');
@@ -442,56 +554,170 @@ const newQueryParam = ref({ name: '', type: 'string', description: '' });
 const newHeader = ref({ name: '', type: 'string', description: '' });
 const showAddQueryParamForm = ref([]);
 const showAddHeaderForm = ref([]);
-const queryParamTypes = ['array', 'integer', 'boolean', 'number', 'any']; // Example types
-const headerTypes = ['string', 'number', 'array', 'integer', 'boolean', 'any']; // Example header types
+const queryParamTypes = ['array', 'integer', 'boolean', 'number', 'any']; 
+const headerTypes = ['string', 'number', 'array', 'integer', 'boolean', 'any']; 
 const showingAddPath = ref(false);
 const activePathIndex = ref(null);
 
 
-// Reactive variables for dropdown options
-const selectedUploadType = ref(null);
-const uploadOptions = ref([
-  { name: 'Upload YAML File', value: 'file' },
-  { name: 'Enter URL', value: 'url' },
-  { name: 'Enter Git Link', value: 'git' },
-]);
+
+const isPreviewVisible = ref(false);
 const apiUrl = ref('');
-const gitLink = ref('');
+ // Ensure rawYAML is defined
+const scriptLoaded = ref(false);
+const errorMessage = ref('');
+const redocContainer = ref(null);
+
+const togglePreview = () => {
+  isPreviewVisible.value = !isPreviewVisible.value;
+};
+
+const loadRedoc = () => {
+  if (scriptLoaded.value) {
+    initializeRedoc();
+    return;
+  }
+
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/redoc@2.0.0-alpha.10/bundles/redoc.standalone.js';
+
+  script.onload = () => {
+    scriptLoaded.value = false;
+    initializeRedoc();
+  };
+  script.onerror = (error) => {
+    console.error('Failed to load ReDoc script:', error);
+    errorMessage.value = 'Failed to load ReDoc script.';
+  };
+
+  document.body.appendChild(script);
+};
+
+const initializeRedoc = () => {
+  const url = apiUrl.value || (rawYAML.value ? 'data:text/yaml;base64,' + btoa(rawYAML.value) : '');
+  if (url && window.Redoc && redocContainer.value) {
+    console.log('Initializing ReDoc with URL or raw YAML content:', url);
+    redocContainer.value.innerHTML = '';
+    window.Redoc.init(url, {
+      title: 'API Documentation',
+      nativeScrollbars: true,
+      scrollYOffset: 50, // Adjust scroll offset for a better experience
+    }, redocContainer.value);
+
+    // Load the RedocTryItOut.js script after ReDoc is initialized
+    loadTryItOutScript();
+  } else {
+    console.error('ReDoc is not available or the container is missing.');
+    errorMessage.value = 'ReDoc is not available or the container is missing.';
+  }
+};
+
+
+const loadTryItOutScript = () => {
+  const tryItOutScript = document.createElement('script');
+  tryItOutScript.src = '/RedocTryItOut.js'; // Ensure this path is accurate
+  tryItOutScript.onload = () => {
+    console.log('RedocTryItOut script loaded successfully');
+  };
+  tryItOutScript.onerror = (error) => {
+    console.error('Failed to load RedocTryItOut script:', error);
+    errorMessage.value = 'Failed to load RedocTryItOut script.';
+  };
+
+  document.body.appendChild(tryItOutScript);
+};
+
+
+const onFileChange = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      rawYAML.value = e.target.result;
+      console.log('Uploaded YAML content:', rawYAML.value);
+      if (isPreviewVisible.value) {
+        initializeRedoc();
+      }
+    };
+    reader.readAsText(file);
+  }
+};
+
+watch(isPreviewVisible, (newValue) => {
+  if (newValue) {
+    loadRedoc();
+  }
+});
+
+const descriptionField = ref(null);
+
+const applyFormat = (formatType) => {
+  if (!descriptionField.value) return;
+
+
+  const selection = window.getSelection();
+  if (!selection.rangeCount) return;
+
+  const range = selection.getRangeAt(0);
+
+
+  const formattedText = document.createElement(formatType === 'link' ? 'a' : formatType);
+
+  if (formatType === 'link') {
+    const url = prompt('Enter the link URL:');
+    if (!url) return;
+    formattedText.setAttribute('href', url);
+  }
+
+  formattedText.appendChild(range.extractContents());
+  range.insertNode(formattedText);
+
+
+  updateDescription();
+};
+
+const updateDescription = () => {
+  if (descriptionField.value) {
+    apiInfo.value.description = descriptionField.value.innerHTML; // Sync content back to state
+  }
+};
+
 
 
 
 // Function to load YAML from a URL
 const loadFromUrl = async () => {
-  try {
-    const response = await fetch(apiUrl.value);
-    if (!response.ok) throw new Error('Network response was not ok');
-    rawYAML.value = await response.text(); // Update rawYAML with fetched content
-  } catch (error) {
-    console.error('Error loading from URL:', error);
+  if (apiUrl.value.trim() !== '') {
+    try {
+      const response = await fetch(apiUrl.value);
+      if (!response.ok) throw new Error('Network response was not ok');
+      rawYAML.value = await response.text();
+      console.log('YAML loaded from URL:', rawYAML.value);
+    } catch (error) {
+      console.error('Error loading from URL:', error);
+    }
+  }
+}
+
+
+const toggleFullScreen = () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch((err) => {
+      console.error(`Error trying to enable fullscreen mode: ${err.message}`);
+    });
+  } else {
+    document.exitFullscreen();
   }
 };
-
-// Function to load YAML from a Git link
-const loadFromGit = async () => {
-  try {
-    const response = await fetch(gitLink.value);
-    if (!response.ok) throw new Error('Network response was not ok');
-    rawYAML.value = await response.text(); // Update rawYAML with fetched content
-    console.log('YAML content loaded from Git:', rawYAML.value);
-  } catch (error) {
-    console.error('Error loading from Git:', error);
-  }
-};
-
-
 
 // Watch for changes in rawYAML and update parsedContent
 watch(rawYAML, (newVal) => {
   try {
     const parsedContent = yaml.load(newVal);
-    console.log(parsedContent); // Handle parsed content
+    console.log(parsedContent);
   } catch (e) {
     console.error('Error parsing YAML: ', e);
+    errorMessage.value = 'Failed to parse YAML. Please check the file format.';
   }
 });
 
@@ -505,7 +731,7 @@ const toggleAddPath = () => {
   showingAddPath.value = !showingAddPath.value;
 };
 
-// Function to add a query parameter
+
 const addQueryParam = (pathIndex) => {
   if (newQueryParam.value.name) {
 
@@ -513,14 +739,31 @@ const addQueryParam = (pathIndex) => {
       apiPaths.value[pathIndex].methods[0].query = [];
     }
     apiPaths.value[pathIndex].methods[0].query.push({ ...newQueryParam.value });
-    // Reset form
+
     newQueryParam.value = { name: '', type: 'str', description: '' };
     showAddQueryParamForm.value[pathIndex] = false; // Hide the form
   }
 };
 
+const yamlData = ref();
 
-// Function to remove a query parameter
+
+
+const downloadFile = (data, filename) => {
+  const blob = new Blob([data], { type: 'application/x-yaml' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+};
+
+const downloadYamlFile = () => {
+  const filename = 'file.yaml';
+  downloadFile(yamlData.value, filename);
+};
+
+
+
 const removeQueryParam = (pathIndex, paramIndex) => {
   apiPaths.value[pathIndex].methods[0].query.splice(paramIndex, 1);
 };
@@ -531,31 +774,29 @@ const addHeader = (pathIndex) => {
 
     if (!Array.isArray(apiPaths.value[pathIndex].methods[0].headers)) {
       console.error(`Expected headers to be an array, but found:`, apiPaths.value[pathIndex].methods[0].headers);
-      apiPaths.value[pathIndex].methods[0].headers = []; // Initialize as an empty array if it's not
+      apiPaths.value[pathIndex].methods[0].headers = [];
     }
-
-    // Now safely push the new header
     apiPaths.value[pathIndex].methods[0].headers.push({ ...newHeader.value });
 
     // Reset form
     newHeader.value = { name: '', type: 'str', description: '' };
-    showAddHeaderForm.value[pathIndex] = false; // Hide the form
+    showAddHeaderForm.value[pathIndex] = false;
   }
 };
 
 
 
-// Function to remove a header
+
 const removeHeader = (pathIndex, headerIndex) => {
   apiPaths.value[pathIndex].methods[0].headers.splice(headerIndex, 1);
 };
 
-// Toggle function to show/hide the add query parameter form
+
 const toggleAddQueryParamForm = (index) => {
   showAddQueryParamForm.value[index] = !showAddQueryParamForm.value[index];
 };
 
-// Toggle function to show/hide the add header form
+
 const toggleAddHeaderForm = (index) => {
   showAddHeaderForm.value[index] = !showAddHeaderForm.value[index];
 };
@@ -565,17 +806,16 @@ const resetNewPathForm = () => {
 };
 
 
-// Watch for changes in apiPaths to update YAML
-watch(apiPaths, () => {
-  updateYAML();
-}, { deep: true });
 
 
-// Function to copy YAML to clipboard
+const snackbarVisible = ref(false);
+
+
 const copyToClipboard = () => {
   if (rawYAML.value) {
     navigator.clipboard.writeText(rawYAML.value)
       .then(() => {
+        snackbarVisible.value = true;
         console.log("YAML copied to clipboard!");
       })
       .catch(err => {
@@ -586,7 +826,7 @@ const copyToClipboard = () => {
   }
 };
 
-// Watch for changes in apiInfo to update YAML
+
 watch(apiInfo, () => {
   updateYAMLFromApiInfo();
 }, { deep: true });
@@ -622,22 +862,11 @@ watch(rawYAML, (newYAML) => {
 });
 
 
-// Function to handle file changes
-const onFileChange = (event) => {
-  const file = event.target.files[0];
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    rawYAML.value = e.target.result;
-  };
-  if (file) {
-    reader.readAsText(file);
-  }
-};
 
 
 // Method to add a new path
 const addPath = () => {
-  console.log('addPath called', newPath.value); // Debug log
+
   if (newPath.value.name && validateMethod(newPath.value.method)) {
     apiPaths.value.push({
       name: newPath.value.name,
@@ -668,11 +897,8 @@ const validateMethod = (method) => {
 // Method to remove a path
 const removePath = (index) => {
   apiPaths.value.splice(index, 1);
-  updateYAML();  // Update YAML after removing a path
+  updateYAML();
 };
-// Method to save edited path details
-
-
 
 
 // Function to update YAML from API info
@@ -684,7 +910,7 @@ const updateYAMLFromApiInfo = () => {
       version: apiInfo.value.version,
       description: apiInfo.value.description,
       contact: {
-        name: apiInfo.value.contact.name, // Ensure contact.name is being updated
+        name: apiInfo.value.contact.name,
         email: apiInfo.value.contact.email,
         url: apiInfo.value.contact.url
       },
@@ -739,51 +965,95 @@ const updateYAML = () => {
     console.error("Error updating YAML:", e);
   }
 };
+apiPaths.value = Object.entries(parsedContent.value.paths || {}).map(([path, methods]) => ({
+  name: path,
+  methods: Object.entries(methods).map(([method, details]) => ({
+    method: method.toUpperCase(),
+    description: details.description || '',
+    query: details.parameters || [],
+    headers: details.headers || {},
+    body: details.requestBody || {},
+    responses: details.responses || {}  // Add the responses here
+  }))
+}));
+
+
+
+const snackbar = ref(false);
+const snackbarMessage = ref('');
+const serverForm = ref({ url: '', description: '' });
+const isEditing = ref(false);
+let editingIndex = ref(null);
+
+// Store for confirmation dialog
+const confirmationDialog = ref(false); // Controls the confirmation dialog visibility
+const serverToDeleteIndex = ref(null); // Store the index of the server to delete
 
 // Function to add a new server
-
-const serverForm = ref({ url: '', description: '' });
-
-const isEditing = ref(false);
-let editingIndex = ref(null); // Store the index of the server being edited
-
 const addServer = () => {
-  console.log('Adding server:', serverForm.value); // Debug log
   if (validateServerForm()) {
     servers.value.push({ ...serverForm.value });
-    console.log('Server added:', servers.value); // Debug log
+    updateYAML();
+    showingAddServer.value = false;
     resetServerForm();
-    updateYAML(); // Call your function to update YAML if needed
-  } else {
-    console.error('Please fill in all fields.'); // Optional: Show error message
+    snackbarMessage.value = 'Server added in the section successfully!';
+    snackbar.value = true;
   }
 };
 
+// Regular expression for URL validation
+const urlRegex = /^(https?:\/\/)[^\s$.?#].[^\s]*$/;
 
+// Function to validate the server form
 const validateServerForm = () => {
-  return serverForm.value.url && serverForm.value.description; // Add any other required fields here
+  if (!serverForm.value.url) {
+    snackbarMessage.value = "The URL field is required! please fill it";
+    snackbar.value = true;
+    return false;
+  }
+
+  if (!urlRegex.test(serverForm.value.url)) {
+    snackbarMessage.value = "Invalid URL format! Please enter a valid URL.";
+    snackbar.value = true;
+    return false;
+  }
+
+  return true;
 };
 
-// Function to remove a server
-const removeServer = (index) => {
-  servers.value.splice(index, 1);
-  updateYAML();
+// Function to confirm deletion of a server
+const confirmRemoveServer = (index) => {
+  serverToDeleteIndex.value = index; // Store the index of the server to delete
+  confirmationDialog.value = true; // Show the confirmation dialog
+};
+
+// Function to remove a server after confirmation
+const removeServer = () => {
+  if (serverToDeleteIndex.value !== null) {
+    servers.value.splice(serverToDeleteIndex.value, 1); // Remove the server
+    updateYAML();
+    snackbarMessage.value = 'Server deleted successfully!';
+    snackbar.value = true;
+  }
+  confirmationDialog.value = false; // Close the confirmation dialog
+  serverToDeleteIndex.value = null; // Reset the delete index
 };
 
 // Function to edit a server
 const editServer = (index) => {
   isEditing.value = true;
   editingIndex.value = index;
-  serverForm.value = { ...servers.value[index] }; // Populate the form with the server data
-  showingAddServer.value = true; // Show the server form
+  serverForm.value = { ...servers.value[index] };
+  showingAddServer.value = true;
 };
 
 // Function to update an existing server
 const updateServer = () => {
   if (editingIndex.value !== null) {
-    servers.value[editingIndex.value] = { ...serverForm.value }; // Update server data
-    resetServerForm(); // Clear form and reset editing state
-    updateYAML(); // Update YAML if necessary
+    servers.value[editingIndex.value] = { ...serverForm.value };
+    resetServerForm();
+    updateYAML();
+    showingAddServer.value = false;
   }
 };
 
@@ -791,8 +1061,12 @@ const updateServer = () => {
 const resetServerForm = () => {
   serverForm.value = { url: '', description: '' };
   isEditing.value = false;
-  editingIndex.value = null; // Clear editing index
+  editingIndex.value = null;
 };
+
+
+
+
 
 // Function to add a new tag group
 const addTagGroup = () => {
@@ -856,7 +1130,24 @@ const contactFields = [
 </script>
 
 
+
+
 <style scoped>
+
+
+.redoc-container {
+  background-color: #ffffff;
+  padding: 0px;
+  margin: 0;
+  overflow-y: auto;
+  border-radius: 0px;
+  box-shadow: none;
+}
+
+
+
+
+
 .monaco-textarea {
   font-family: 'Courier New', Courier, monospace;
   border-radius: 8px;
@@ -866,26 +1157,95 @@ const contactFields = [
   transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-.description-markdown ::v-deep {
+.description-markdown :deep(.description-markdown) {
   font-size: 1.9em;
 }
 
-.description-markdown ::v-deep h1 {
+.description-markdown :deep(h1) {
   font-size: 1.4em;
 }
 
-.description-markdown ::v-deep h2 {
+.description-markdown :deep(h2) {
   font-size: 1.1em;
 }
 
-.description-markdown ::v-deep p {
+.description-markdown :deep(p) {
   font-size: 1em;
 }
+
+
+.v-tooltip__content {
+  transform: translateY(-10px) !important;
+  /* Adjust the vertical position of the tooltip */
+}
+
+
+
+
+.editor-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 10px 15px;
+  background: linear-gradient(135deg, #ffffff, #f3f3f3);
+  border: 1px solid #ddd;
+  border-radius: 11px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  align-items: center;
+}
+
+
+
+.download-btn {
+  position: absolute;
+  /* Absolute positioning */
+  top: 108px;
+  /* Adjust distance from the top */
+  right: 37px;
+  /* Adjust distance from the right */
+  background-color: #1a1b1b;
+  /* Background color */
+  color: rgb(94, 166, 248);
+  /* Icon color */
+  border-radius: 10%;
+  /* Rounded button */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  /* Shadow */
+  transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+  /* Transition effect */
+  padding: 10px;
+  /* Padding */
+  cursor: pointer;
+}
+
+.download-btn .v-icon {
+  font-size: 24px;
+  /* Icon size */
+}
+
+.custom-tooltip .v-tooltip__content {
+  background-color: #333;
+  /* Tooltip background */
+  color: white;
+  /* Tooltip text color */
+  font-size: 14px;
+  /* Font size */
+  border-radius: 4px;
+  /* Rounded edges */
+  padding: 8px 12px;
+  /* Padding */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  /* Shadow for tooltip */
+  opacity: 1;
+  /* Ensure tooltip is visible */
+}
+
 
 .monaco-textarea:focus {
   border-color: #1976d2;
   box-shadow: 0 0 10px rgba(25, 118, 210, 0.5);
 }
+
 
 .v-btn {
   box-shadow: 0 2px 5px rgba(83, 80, 80, 0.1);
@@ -901,7 +1261,7 @@ const contactFields = [
 
 .path-item {
   margin-bottom: 16px;
-  border: 1px solid #1976d2;
+
   border-radius: 8px;
   padding: 10px;
   background-color: #fff;
@@ -920,14 +1280,11 @@ const contactFields = [
 }
 
 .path-heading {
-  font-size: 1rem;
+  font-size: 15px;
   /* Larger font for the heading */
 }
 
-.path-details {
-  font-size: 1rem;
-  /* Default size for method details */
-}
+
 
 .custom-btn {
   background-color: #FF5733 !important;
@@ -1004,29 +1361,9 @@ const contactFields = [
   position: relative;
 }
 
-/* Line Numbers Styling */
-.line-numbers {
-  background-color: #2d2d2d;
-  color: #202020;
-  font-family: monospace;
-  text-align: right;
-  padding: 10px 6px;
-  user-select: none;
-  border-right: 1px solid #3c3c3c;
-}
 
-.line-number {
-  display: block;
-  padding: 0 5px;
-  line-height: 1.5;
-}
 
-.file-input {
-  background-color: #fff;
-  border-radius: 8px;
-  padding: 10px;
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
-}
+
 
 /* Main Content Card */
 .content-card {
@@ -1167,6 +1504,4 @@ const contactFields = [
   opacity: 1;
   transform: translateY(0);
 }
-
-
 </style>
