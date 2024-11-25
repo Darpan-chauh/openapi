@@ -579,7 +579,8 @@ const loadRedoc = () => {
   }
 
   const script = document.createElement('script');
-  script.src = 'https://cdn.jsdelivr.net/npm/redoc@2.0.0-alpha.10/bundles/redoc.standalone.js';
+  // script.src = 'https://cdn.jsdelivr.net/npm/redoc@2.0.0-alpha.10/bundles/redoc.standalone.js';
+  script.src = 'https://cdn.jsdelivr.net/npm/redoc-try-it-out/dist/try-it-out.min.js';
 
   script.onload = () => {
     scriptLoaded.value = false;
@@ -598,7 +599,8 @@ const initializeRedoc = () => {
   if (url && window.Redoc && redocContainer.value) {
     console.log('Initializing ReDoc with URL or raw YAML content:', url);
     redocContainer.value.innerHTML = '';
-    window.Redoc.init(url, {
+    // window.Redoc.init(url, {
+      window.RedocTryItOut.init(url, {
       title: 'API Documentation',
       nativeScrollbars: true,
       scrollYOffset: 50, // Adjust scroll offset for a better experience
@@ -615,7 +617,7 @@ const initializeRedoc = () => {
 
 const loadTryItOutScript = () => {
   const tryItOutScript = document.createElement('script');
-  tryItOutScript.src = '/RedocTryItOut.js'; // Ensure this path is accurate
+  // tryItOutScript.src = '/RedocTryItOut.js'; // Ensure this path is accurate
   tryItOutScript.onload = () => {
     console.log('RedocTryItOut script loaded successfully');
   };
