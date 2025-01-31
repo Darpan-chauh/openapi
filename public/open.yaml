@@ -73,10 +73,14 @@ x-tagGroups:
     tags:
       - Users
 paths:
-  '/{version}/serviceability':
+  paths:
+  /{version}/serviceability:
     post:
-      summary: Serviceability
-      description: 'The API provides functionality to retrieve serviceable carriers and rates for outsourced fleets, allowing businesses to access real-time information on available shipping carriers and their associated costs. This ensures that customers receive accurate and current shipping options and pricing based on factors like delivery location, package weight, and service levels.'
+      operationId: serviceability
+      summary: serviceability
+      description: >-
+        The API provides functionality to retrieve serviceable carriers and
+        rates...
       tags:
         - Serviceability
       requestBody:
@@ -85,45 +89,6 @@ paths:
           application/json:
             schema:
               type: object
-              x-examples:
-                Example 1:
-                  shipFrom:
-                    address:
-                      code: JB-137
-                      city: Elizabeth
-                      state: SA
-                      pincode: '5039'
-                      county: ''
-                      country: Australia
-                  shipTo:
-                    address:
-                      code: JB-137
-                      city: Elizabeth
-                      state: SA
-                      pincode: '5000'
-                      county: Elizabeth
-                      country: 'Australia '
-                  consignmentDetails:
-                    referenceNumber: REF123456
-                    consignmentType: Standard
-                    totalWeight: 10
-                    totalVolume: 0.75
-                    paymentType: Prepaid
-                    serviceType: eParcel
-                    orderAmount: 500
-                    codAmount: 0
-                    shipByDate: '2024-08-12'
-                    packageDetails:
-                      - length: 10
-                        width: 5
-                        height: 8
-                        weight: 6
-                        volume: 0.4
-                        packageValue: 100
-                        storageDays: 5
-                        serviceabilityFilters:
-                          packageType: Carton
-                          businessUnit: JBH
               required:
                 - shipFrom
                 - shipTo
@@ -131,160 +96,13 @@ paths:
               properties:
                 shipFrom:
                   type: object
-                  description: Origin Details(Address indicating shipment's origin)
-                  required:
-                    - address
-                  properties:
-                    address:
-                      $ref: '#/components/schemas/serviceableaddress'
+                  description: Origin Details
                 shipTo:
                   type: object
-                  description: Destination Details / Customer Details (Address indicating shipment's destination)
-                  required:
-                    - address
-                  properties:
-                    address:
-                      $ref: '#/components/schemas/serviceableaddress'
+                  description: Destination Details
                 consignmentDetails:
                   type: object
-                  description: Consignment details
-                  required:
-                    - referenceNumber
-                    - consignmentType
-                    - totalWeight
-                    - shipByDate
-                    - packageDetails
-                  properties:
-                    referenceNumber:
-                      type: string
-                      description: Unqiue system identifier
-                      example: MBFE004
-                    consignmentType:
-                      description: |-
-                        The default consignments include Forward, Reverse, and Exchange.  
-                        Note: Additional types can be added in the master list based on client requirements.
-                      enum:
-                        - Forward
-                        - Reverse
-                        - Exchange
-                        - Transfer
-                        - Service
-                      default: Forward
-                      example: Forward
-                    totalWeight:
-                      type: number
-                      description: Total weight of consignment.
-                      example: 12.01
-                    totalVolume:
-                      type: number
-                      description: Total volume of consignment.
-                      example: 12312.12
-                    paymentType:
-                      type: string
-                      description: 'Payment type i.e COD, Prepaid'
-                      example: PREPAID
-                    serviceType:
-                      type: string
-                      description: Service type
-                      example: Express
-                    orderAmount:
-                      type: number
-                      description: Order amount
-                      example: 12.12
-                    codAmount:
-                      type: number
-                      description: Amount to be collected.
-                    shipByDate:
-                      type: string
-                      description: The date the order is to be shipped or dispatch before or on. This field is a suggested value generated by the order source/platform/cart and passed to FarEye.
-                      format: date
-                      example: '2024-07-30'
-                    packageDetails:
-                      type: array
-                      description: Package or container details.
-                      items:
-                        type: object
-                        required:
-                          - length
-                          - width
-                          - height
-                          - weight
-                        properties:
-                          length:
-                            type: number
-                            description: Length of package.
-                            example: 12.11
-                          width:
-                            type: number
-                            description: Width of package.
-                            example: 5.12
-                          height:
-                            type: number
-                            description: Hieght of package.
-                            example: 5.12
-                          weight:
-                            type: number
-                            description: Weight of package.
-                            example: 12.12
-                          volume:
-                            type: number
-                            description: Volume of package.
-                            example: 1233.11
-                          packageValue:
-                            type: number
-                            description: Value or amount of package.
-                          serviceabilityFilters:
-                            type: object
-                            description: The serviceability filter will use in carrier allocation to provide the best fit cariers.
-                            properties:
-                              packageType:
-                                type: string
-                                description: 'Type of package i.e Carton, BOX, etc.'
-                                example: Carton
-                              businessUnit:
-                                type: string
-                                description: Business unit
-                                example: NZZ
-            examples:
-              Example 1:
-                value:
-                  shipFrom:
-                    address:
-                      code: JB-137
-                      city: Elizabeth
-                      state: SA
-                      pincode: '5039'
-                      county: ''
-                      country: Australia
-                  shipTo:
-                    address:
-                      code: JB-137
-                      city: Elizabeth
-                      state: SA
-                      pincode: '5000'
-                      county: Elizabeth
-                      country: Australia
-                  consignmentDetails:
-                    referenceNumber: REF123456
-                    consignmentType: Forward
-                    totalWeight: 10
-                    totalVolume: 0.75
-                    paymentType: Prepaid
-                    serviceType: Express
-                    orderAmount: 500
-                    codAmount: 0
-                    shipByDate: '2024-08-12'
-                    packageDetails:
-                      - length: 10
-                        width: 5
-                        height: 8
-                        weight: 6
-                        volume: 0.4
-                        packageValue: 100
-                        storageDays: 5
-                        serviceabilityFilters:
-                          packageType: Carton
-                          businessUnit: JBH
+                  description: Consignment Details
       responses:
         '200':
           description: OK
@@ -292,204 +110,30 @@ paths:
             application/json:
               schema:
                 type: object
-                x-examples:
-                  Example 1:
-                    referenceNumber: '127121232'
-                    timestamp: '2024-07-17T13:23:55.490508'
-                    status: OK
-                    carriers:
-                      - name: DHL-EXPRESS
-                        code: DHL-EXPRESS
-                        rank: 1
-                        rate:
-                          totalAmount: 34
-                          currency: GBP
-                          breakUp:
-                            freightCharge: 32
-                            additionalCharges:
-                              - amount: 2
-                                chargeHead: Fuel Surcharge
-                          uuid: 2e086999-eeba-4f5d-94d3-3a2b7673a6bc
-                        score: 0
-                        outputTags: {}
-                        matchingOdPair:
-                          originPostalcode: '10001'
-                          destinationPostalcode: '76064'
-                        serviceCode: '06'
-                        serviceType: FIRST_OVERNIGHT
-                        serviceName: FedEx First Overnight®
-                        shipTime: '2023-06-01 00:00:00'
-                        deliveryTime: '2023-06-05 12:00:00'
-                        cutoffTime: '2023-06-01 17:00:00'
-                        deliveryDay: MON
-                        totalTransitDays: 5
-                        tatUnit: DAY
-                        tatValue: 2
                 required:
                   - referenceNumber
                   - timestamp
                   - status
-                  - carriers
                 properties:
                   referenceNumber:
                     type: string
-                    example: '9893121021'
-                    description: Unique system identifer
+                    description: Unique system identifier
                   timestamp:
                     type: string
                     description: Current timestamp
                   status:
                     type: string
                     description: HTTP status name
-                    example: OK
-                  carriers:
-                    type: array
-                    items:
-                      type: object
-                      required:
-                        - name
-                        - code
-                        - rank
-                        - serviceType
-                      properties:
-                        name:
-                          type: string
-                          description: Carrier name
-                          example: Fedex
-                        code:
-                          type: string
-                          description: Carrier code
-                          example: FEDEX
-                        rank:
-                          type: integer
-                          example: 1
-                          description: Priority rank
-                        rate:
-                          type: object
-                          description: Rate details
-                          required:
-                            - totalAmount
-                            - currency
-                          properties:
-                            totalAmount:
-                              type: number
-                              description: Total chargable amount of shipment.
-                              format: double
-                              example: 34.12
-                            currency:
-                              type: string
-                              description: Curreny of country.
-                              example: USD
-                            breakUp:
-                              type: object
-                              description: Break up of charges
-                              properties:
-                                freightCharge:
-                                  type: number
-                                  description: Freight charges
-                                  example: 32
-                                  format: double
-                                additionalCharges:
-                                  type: array
-                                  description: Additional charges details
-                                  items:
-                                    type: object
-                                    properties:
-                                      amount:
-                                        type: number
-                                        description: Amount
-                                        example: 2
-                                        format: double
-                                      chargeHead:
-                                        type: string
-                                        description: Charge head reason
-                                        example: Fuel Surcharge
-                            uuid:
-                              type: string
-                              description: Unique id of rate result.
-                              example: 2e086999-eeba-4f5d-94d3-3a2b7673a6bc
-                        score:
-                          type: integer
-                          example: 1
-                          description: Parameter score
-                        outputTags:
-                          type: object
-                          description: Output tags
-                        matchingodpair:
-                          type: object
-                          description: Match origin and destination pair
-                          properties:
-                            originPostalCode:
-                              type: string
-                              description: Ship from postal code.
-                              example: '10001'
-                            destinationPostalCode:
-                              type: string
-                              description: Ship to postal code.
-                              example: '76064'
-                        serviceType:
-                          type: string
-                          description: Service type
-                          example: FIRST_OVERNIGHT
-                        serviceName:
-                          type: string
-                          description: Service name
-                          example: FedEx First Overnight®
-                        tatUnit:
-                          description: Tat Unit
-                          enum:
-                            - DAY
-                            - HR
-                            - MINS
-                          example: DAY
-                        tatValue:
-                          type: integer
-                          example: 1
-              examples:
-                Example 1:
-                  value:
-                    referenceNumber: '9893121021'
-                    timestamp: string
-                    status: OK
-                    carriers:
-                      - name: Fedex
-                        code: FEDEX
-                        rank: 1
-                        rate:
-                          totalAmount: 34.12
-                          currency: USD
-                          breakUp:
-                            freightCharge: 32
-                            additionalCharges:
-                              - amount: 2
-                                chargeHead: Fuel Surcharge
-                          uuid: 2e086999-eeba-4f5d-94d3-3a2b7673a6bc
-                        score: 1
-                        outputTags: {}
-                        matchingodpair:
-                          originPostalCode: '10001'
-                          destinationPostalCode: '76064'
-                        serviceType: FIRST_OVERNIGHT
-                        serviceName: FedEx First Overnight®
-                        tatUnit: DAY
-                        tatValue: 1
-        '400':
-          $ref: '#/components/responses/400'
-        '401':
-          $ref: '#/components/responses/401'
-        '500':
-          $ref: '#/components/responses/500'
-      operationId: serviceability
-    parameters:
-      - schema:
-          type: string
-          example: v1
-          enum:
-            - v1
-        name: version
-        in: path
-        required: true
-        description: Version
+      parameters:
+        - name: version
+          in: path
+          required: true
+          schema:
+            type: string
+            enum:
+              - v1
+            example: v1
+          description: Version
   '/{version}/slots':
     post:
       summary: Fetch available slots

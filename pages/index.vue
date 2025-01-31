@@ -4,9 +4,28 @@
 
 
       <!-- Header -->
+
+      
       <h1 class="text-center mb-4" style="color: #FF5733; font-weight: bold; font-size: 2.5em;">
         .YAML File Uploader
       </h1>
+
+      <v-row class="right-align-row">
+  <v-col>
+    <nuxt-link to="/gen" class="no-underline">
+      <v-btn
+        color="#FF5733"
+        class="d-flex align-center right-align-btn"
+        elevation="2"
+        rounded
+      >
+        <span class="mr-2"> Gen-YAML </span>
+        <v-icon right>mdi-arrow-right</v-icon> 
+      </v-btn>
+    </nuxt-link>
+  </v-col>
+</v-row>
+
 
 
       <div class="d-flex justify-center mb-4">
@@ -21,11 +40,6 @@
           style="background-color: #ffffff; border-radius: 8px; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);"
           prepend-icon="mdi-link" @input="loadFromUrl" />
       </div>
-
-
-
-
-
       <!-- Main Content Card -->
 
 
@@ -183,37 +197,37 @@
 
 
           <div class="d-flex justify-start mt-4">
-    <!-- Toggle Preview Button (No Changes) -->
-    <div class="d-flex justify-end mt-4" style="position: absolute; top: 2px; right: 60px;">
-      <v-btn 
-        @click="togglePreview" 
-        class="mx-2"
-        style="border-radius: 8px; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);">
-        Preview
+    <!-- Toggle Preview Button -->
+    <div class="d-flex justify-end mt-4" style="position: absolute; top: 1px; right: 55px;">
+      <v-btn @click="togglePreview" class="mx-2"
+        style="border-radius: 12px; box-shadow: 0px 6px 18px rgba(0, 0, 0, 0.15); font-weight: 500; transition: all 0.3s ease-in-out;">
+        <v-icon left>mdi-eye</v-icon> Preview
       </v-btn>
     </div>
 
     <!-- Dialog for API Documentation Preview -->
     <v-dialog v-model="isPreviewVisible" fullscreen persistent>
-      <v-card class="d-flex flex-column" style="height: 100vh; width: 100vw;">
+      <v-card class="d-flex flex-column" style="height: 100vh; width: 100vw; border-radius: 0; overflow: hidden;">
         
-        
-
-        <v-card-text class="flex-grow-1" style="overflow-y: auto; padding-top: 50px;">
-          <!-- ReDoc Preview Content -->
-          <div ref="redocContainer" class="redoc-container" style="height: calc(100vh - 50px);"></div>
+        <v-card-text class="flex-grow-1" style="overflow-y: auto; padding: 0;">
+          <div ref="redocContainer" class="redoc-container" style="height: 100%; position: relative;">
+            <!-- Documentation content here -->
+          </div>
         </v-card-text>
 
+
+
         <!-- Close Button -->
-        <v-card-actions style="position: absolute; bottom: 0; left: 0; right: 800px; z-index: 10; padding: 20px;">
-          <v-btn color="primary" @click="togglePreview" class="close-btn" elevation="10"
-            style="border-radius: 12px; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); transition: all 0.3s ease-in-out;">
-            Close
+        <v-card-actions
+          class="d-flex justify-center align-center"
+          style="position: absolute; bottom: 20px; width: 100%; z-index: 10;">
+          <v-btn color="red" @click="togglePreview" elevation="10"
+            style="border-radius: 50%; padding: 6px; box-shadow: 0px 6px 20px #FF5733; transition: all 0.3s ease-in-out;">
+            <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
-  
 
 
 
@@ -224,161 +238,316 @@
             <v-icon>mdi-fullscreen</v-icon>
           </v-btn>
 
-          <div v-if="activeSection === 'paths'" class="path-section">
-            <h2 class="text-h5" style="color: #FF5733 ; margin-bottom: 15px;"></h2>
+         <div v-if="activeSection === 'paths'" class="path-section">
+  <h2 class="text-h5" style="color: #FF5733 ; margin-bottom: 15px;"></h2>
 
-            <div v-for="(path, index) in apiPaths" :key="index"
-              class="path-item mb-4 border rounded-lg p-4 shadow-lg bg-white">
+  <div v-for="(path, index) in apiPaths" :key="index" class="path-item mb-4 border rounded-lg p-4 shadow-lg bg-white">
+    <div @click="togglePathDetails(index)" class="path-heading" style="cursor: pointer;">
+      <strong>{{ path.name }}</strong>
+      <v-icon>{{ activePathIndex === index ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+    </div>
 
-              <div @click="togglePathDetails(index)" class="path-heading" style="cursor: pointer;">
-                <strong>{{ path.name }}</strong>
-                <v-icon>{{ activePathIndex === index ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
-              </div>
-
-              <div v-if="activePathIndex === index" class="path-details mt-3">
-                <strong>Methods:</strong>
-                <div v-for="(method, mIndex) in path.methods" :key="mIndex" class="method-item mb-2">
-                  <v-text-field v-model="method.method" label="HTTP Method" outlined :rules="[validateMethod]" />
-                  <v-textarea v-model="method.description" label="Description" outlined class="mt-2" />
-                </div>
-
-
-
-
-                <div class="mt-3">
-                  <strong>Query p:</strong>
-                  <div v-for="(param, paramIndex) in path.methods[0].query" :key="paramIndex" class="query-param mb-2">
-                    <v-row lang="center" no-gutters>
-                      <v-col cols="4">
-                        <v-text-field v-model="param.name" label="Parameter Name" outlined
-                          :rules="[v => !!v || 'Required']" />
-                      </v-col>
-                      <v-col cols="3">
-                        <v-select v-model="param.type" :items="queryParamTypes" label="Type" outlined />
-                      </v-col>
-                      <v-col cols="4">
-                        <v-textarea v-model="param.description" label="Description" outlined rows="1" />
-                      </v-col>
-                      <v-col cols="1" class="d-flex align-center">
-                        <v-btn @click="removeQueryParam(index, paramIndex)" icon>
-                          <v-icon color="red">mdi-delete</v-icon>
-                        </v-btn>
-                      </v-col>
-                    </v-row>
-                  </div>
+    <div v-if="activePathIndex === index" class="path-details mt-3">
+      <div v-for="(method, mIndex) in path.methods" :key="mIndex" class="method-item mb-2">
+  <!-- Dropdown for HTTP Method selection -->
+  <v-select
+    v-model="method.method"
+    :items="['GET', 'POST', 'PUT', 'DELETE', 'PATCH']"
+    label="HTTP Method"
+    variant="outlined"
+    :rules="[validateMethod]"
+    outlined
+  />
+  
+  <!-- Description textarea -->
+  <v-textarea
+    v-model="method.description"
+    label="Description"
+    variant="outlined"
+    outlined
+    class="mt-2"
+  />
+</div>
 
 
-                  <v-btn @click="toggleAddQueryParamForm(index)" style="background-color: #FF5733; color: white;" small>
-                    {{ showAddQueryParamForm[index] ? 'Cancel' : 'Add Query' }}
-                  </v-btn>
+<div class="mt-3">
+  <strong style="font-size: 1.2em; color: #333; font-weight: 600;">Query Parameters:</strong>
+  <div v-for="(param, paramIndex) in path.methods[0].query" :key="paramIndex" class="query-param mb-3">
+    <v-row align="center" no-gutters>
+      <!-- Parameter Name Input -->
+      <v-col cols="4">
+        <v-text-field
+          v-model="param.name"
+          label="Parameter Name"
+          outlined
+          dense
+          color="primary"
+          class="my-2"
+          :rules="[v => !!v || 'Required']"
+        />
+      </v-col>
+      
+      <!-- Parameter Type Dropdown -->
+      <v-col cols="3">
+        <v-select
+          v-model="param.type"
+          :items="queryParamTypes"
+          label="Type"
+          outlined
+          dense
+          color="primary"
+          class="my-2"
+        />
+      </v-col>
+
+      <!-- Parameter Description Textarea -->
+      <v-col cols="4">
+        <v-textarea
+          v-model="param.description"
+          label="Description"
+          outlined
+          rows="1"
+          dense
+          color="primary"
+          class="my-2"
+        />
+      </v-col>
+
+      <!-- Remove Button -->
+      <v-col cols="1" class="d-flex align-center">
+        <v-btn
+          @click="removeQueryParam(index, paramIndex)"
+          icon
+          color="red"
+          class="my-2"
+        >
+          <v-icon>mdi-delete</v-icon>
+        </v-btn>
+      </v-col>
+    </v-row>
+  </div>
+
+  <!-- Add Query Parameter Button -->
+  <v-btn
+  @click="toggleAddQueryParamForm(index)"
+  color=#FF5733
+  small
+  outlined
+  dense
+  class="mt-3"
+>
+  {{ showAddQueryParamForm[index] ? 'Cancel' : 'Add' }}
+</v-btn>
 
 
+  <v-expand-transition>
+    <div v-if="showAddQueryParamForm[index]" class="mt-2">
+      <v-row align="center" no-gutters>
+        <!-- New Query Parameter Name -->
+        <v-col cols="4">
+          <v-text-field
+            v-model="newQueryParam.name"
+            label="Parameter Name"
+          variant =  "outlined"
+          
+            class="my-2"
+            color="primary"
+          />
+        </v-col>
 
-                  <v-expand-transition>
-                    <div v-if="showAddQueryParamForm[index]" class="mt-2">
-                      <v-row align="center" no-gutters>
-                        <v-col cols="4">
-                          <v-text-field v-model="newQueryParam.name" label="Parameter Name" outlined />
-                        </v-col>
-                        <v-col cols="3">
-                          <v-select v-model="newQueryParam.type" :items="queryParamTypes" label="Type" outlined />
-                        </v-col>
-                        <v-col cols="4">
-                          <v-textarea v-model="newQueryParam.description" label="Description" outlined rows="1" />
-                        </v-col>
-                        <v-col cols="1" class="d-flex align-center">
-                          <v-btn @click="addQueryParam(index)" color="success" small>
-                            Save
-                          </v-btn>
-                        </v-col>
-                      </v-row>
-                    </div>
-                  </v-expand-transition>
-                </div>
+        <!-- New Query Parameter Type -->
+        <v-col cols="3">
+          <v-select
+            v-model="newQueryParam.type"
+            :items="queryParamTypes"
+            label="Type"
+             variant = "outlined"
+            
+            class="my-2"
+            color="primary"
+          />
+        </v-col>
+
+        <!-- New Query Parameter Description -->
+        <v-col cols="4">
+          <v-textarea
+            v-model="newQueryParam.description"
+            label="Description"
+           variant = "outlined"
+            rows="1"
+           
+            class="my-2"
+            color="primary"
+          />
+        </v-col>
+
+        <!-- Save Button -->
+        <v-col cols="1" class="d-flex align-center">
+          <v-btn
+            @click="addQueryParam(index)"
+            color="success"
+            small
+            class="my-2"
+          >
+            Save
+          </v-btn>
+        </v-col>
+      </v-row>
+    </div>
+  </v-expand-transition>
+</div>
+
+<div class="mt-3">
+  <strong style="font-size: 1.2em; color: #333; font-weight: 600;">Headers :</strong>
+  <div v-for="(header, headerIndex) in path.methods[0].headers" :key="headerIndex" class="header-item mb-2">
+    <v-row align="center" no-gutters>
+      <v-col cols="4">
+        <v-text-field
+          v-model="header.name"
+          label="Header Name"
+          outlined
+          dense
+          color="primary"
+          class="my-2"
+          :rules="[v => !!v || 'Required']"
+        />
+      </v-col>
+      <v-col cols="3">
+        <v-select
+          v-model="header.type"
+          :items="headerTypes"
+          label="Type"
+          outlined
+          dense
+          color="primary"
+          class="my-2"
+        />
+      </v-col>
+      <v-col cols="4">
+        <v-textarea
+          v-model="header.description"
+          label="Description"
+          outlined
+          dense
+          color="primary"
+          class="my-2"
+        />
+      </v-col>
+      <v-col cols="1" class="d-flex align-center">
+        <v-btn @click="removeHeader(index, headerIndex)" icon>
+          <v-icon style="color: #FF5733;">mdi-delete</v-icon>
+        </v-btn>
+      </v-col>
+    </v-row>
+  </div>
+
+  <v-btn
+    @click="toggleAddHeaderForm(index)"
+    style="background-color: #FF5733; color: white;"
+    small
+  >
+    {{ showAddHeaderForm[index] ? 'Cancel' : 'Add Header' }}
+  </v-btn>
+
+  <v-expand-transition>
+    <div v-if="showAddHeaderForm[index]" class="mt-2">
+      <v-row align="center" no-gutters>
+        <v-col cols="4">
+          <v-text-field
+            v-model="newHeader.name"
+            label="Header Name"
+            variant = "outlined"
+            dense
+            color="primary"
+            class="my-2"
+          />
+        </v-col>
+        <v-col cols="3">
+          <v-select
+            v-model="newHeader.type"
+            :items="headerTypes"
+            label="Type"
+            variant ="outlined"
+            dense
+            color="primary"
+            class="my-2"
+          />
+        </v-col>
+        <v-col cols="4">
+          <v-textarea
+            v-model="newHeader.description"
+            label="Description"
+           variant ="outlined"
+            dense
+            color="primary"
+            class="my-2"
+          />
+        </v-col>
+        <v-col cols="1" class="d-flex align-center">
+          <v-btn
+            @click="addHeader(index)"
+            color="success"
+            small
+          >
+            Save Header
+          </v-btn>
+        </v-col>
+      </v-row>
+    </div>
+  </v-expand-transition>
+</div>
 
 
-                <div class="mt-3">
-                  <strong>Headers:</strong>
-                  <div v-for="(header, headerIndex) in path.methods[0].headers" :key="headerIndex"
-                    class="header-item mb-2">
-                    <v-text-field v-model="header.name" label="Header Name" outlined
-                      :rules="[v => !!v || 'Required']" />
-                    <v-select v-model="header.type" :items="headerTypes" label="Type" outlined />
-                    <v-textarea v-model="header.description" label="Description" outlined />
-                    <v-btn @click="removeHeader(index, headerIndex)" icon>
-                      <v-icon style="color: #FF5733;">mdi-delete</v-icon>
-                    </v-btn>
-
-                  </div>
-
-
-                  <v-btn @click="toggleAddHeaderForm(index)" style="background-color: #FF5733; color: white;" small>
-                    {{ showAddHeaderForm[index] ? 'Cancel' : 'Add Header' }}
-                  </v-btn>
-
-
-
-                  <v-expand-transition>
-                    <div v-if="showAddHeaderForm[index]" class="mt-2">
-                      <v-text-field v-model="newHeader.name" label="Header Name" outlined />
-                      <v-select v-model="newHeader.type" :items="headerTypes" label="Type" outlined />
-                      <v-textarea v-model="newHeader.description" label="Description" outlined />
-                      <v-btn @click="addHeader(index)" color="success" small>Save Header</v-btn>
-                    </div>
-                  </v-expand-transition>
-                </div>
-
-
-                <div class="mt-3">
+<div class="mt-3">
                   <strong>Body:</strong>
                   <v-textarea v-model="path.methods[0].body" label="Body" outlined />
                 </div>
 
 
-                <v-btn @click.stop="removePath(index)" icon color="red" class="mt-2">
-                  <v-icon>mdi-delete</v-icon>
-                </v-btn>
-              </div>
-            </div>
 
+      <v-btn @click.stop="removePath(index)" icon color="red" class="mt-2">
+        <v-icon>mdi-delete</v-icon>
+      </v-btn>
+    </div>
+  </div>
 
-            <v-btn @click="toggleAddPath" style="background-color: #FF5733; color: white;" class="mb-2">
-              {{ showingAddPath ? 'Cancel' : 'Add Path' }}
-            </v-btn>
+  <v-btn @click="toggleAddPath" style="background-color: #FF5733; color: white;" class="mb-2">
+    {{ showingAddPath ? 'Cancel' : 'Add Path' }}
+  </v-btn>
 
-            <transition name="fade">
-              <div v-if="showingAddPath" class="add-path-form border rounded-lg p-4 bg-white shadow-lg">
-                <v-text-field v-model="newPath.name" label="Path Name" outlined :rules="[v => !!v || 'Required']" />
-                <v-text-field v-model="newPath.method" label="HTTP Method" outlined :rules="[validateMethod]" />
-                <v-textarea v-model="newPath.description" label="Description" outlined />
+  <transition name="fade">
+    <div v-if="showingAddPath" class="add-path-form border rounded-lg p-4 bg-white shadow-lg">
+      <v-text-field v-model="newPath.name" label="Path Name" outlined :rules="[v => !!v || 'Required']" />
+      <v-text-field v-model="newPath.method" label="HTTP Method" outlined :rules="[validateMethod]" />
+      <v-textarea v-model="newPath.description" label="Description" outlined />
 
-                <v-list>
-                  <v-list-item>
-                    <v-list-item-content>
-                      <v-list-item-title><strong>Query Parameters:</strong></v-list-item-title>
-                      <v-text-field v-model="newPath.query" label="Query Parameters (comma separated)" outlined />
-                    </v-list-item-content>
-                  </v-list-item>
+      <v-list>
+        <v-list-item>
+          <v-list-item-content>
+            <v-list-item-title><strong>Query Parameters:</strong></v-list-item-title>
+            <v-text-field v-model="newPath.query" label="Query Parameters (comma separated)" outlined />
+          </v-list-item-content>
+        </v-list-item>
 
-                  <v-list-item>
-                    <v-list-item-content>
-                      <v-list-item-title><strong>Headers:</strong></v-list-item-title>
-                      <v-textarea v-model="newPath.headers" label="Headers (JSON format)" outlined />
-                    </v-list-item-content>
-                  </v-list-item>
+        <v-list-item>
+          <v-list-item-content>
+            <v-list-item-title><strong>Headers:</strong></v-list-item-title>
+            <v-textarea v-model="newPath.headers" label="Headers (JSON format)" outlined />
+          </v-list-item-content>
+        </v-list-item>
 
-                  <v-list-item>
-                    <v-list-item-content>
-                      <v-list-item-title><strong>Body:</strong></v-list-item-title>
-                      <v-textarea v-model="newPath.body" label="Body (JSON format)" outlined />
-                    </v-list-item-content>
-                  </v-list-item>
-                </v-list>
+        <v-list-item>
+          <v-list-item-content>
+            <v-list-item-title><strong>Body:</strong></v-list-item-title>
+            <v-textarea v-model="newPath.body" label="Body (JSON format)" outlined />
+          </v-list-item-content>
+        </v-list-item>
+      </v-list>
 
-                <v-btn @click="addPath" color="success" class="mt-2">Save Path</v-btn>
-              </div>
-            </transition>
-          </div>
+      <v-btn @click="addPath" color="success" class="mt-2">Save Path</v-btn>
+    </div>
+  </transition>
+</div>
 
 
 
@@ -528,11 +697,9 @@
 
 <script setup>
 
-import { ref, watch } from 'vue';
+import { ref, watch  } from 'vue';
 import yaml from 'js-yaml';
 import Monaco from '@/components/core/Monaco';
-
-
 
 
 // Reactive variables
@@ -554,8 +721,8 @@ const newQueryParam = ref({ name: '', type: 'string', description: '' });
 const newHeader = ref({ name: '', type: 'string', description: '' });
 const showAddQueryParamForm = ref([]);
 const showAddHeaderForm = ref([]);
-const queryParamTypes = ['array', 'integer', 'boolean', 'number', 'any']; 
-const headerTypes = ['string', 'number', 'array', 'integer', 'boolean', 'any']; 
+const queryParamTypes = ['array', 'integer', 'boolean', 'number', 'any'];
+const headerTypes = ['string', 'number', 'array', 'integer', 'boolean', 'any'];
 const showingAddPath = ref(false);
 const activePathIndex = ref(null);
 
@@ -563,10 +730,10 @@ const activePathIndex = ref(null);
 
 const isPreviewVisible = ref(false);
 const apiUrl = ref('');
- // Ensure rawYAML is defined
 const scriptLoaded = ref(false);
 const errorMessage = ref('');
 const redocContainer = ref(null);
+
 
 const togglePreview = () => {
   isPreviewVisible.value = !isPreviewVisible.value;
@@ -579,8 +746,7 @@ const loadRedoc = () => {
   }
 
   const script = document.createElement('script');
-  // script.src = 'https://cdn.jsdelivr.net/npm/redoc@2.0.0-alpha.10/bundles/redoc.standalone.js';
-  script.src = 'https://cdn.jsdelivr.net/npm/redoc-try-it-out/dist/try-it-out.min.js';
+  script.src = 'https://cdn.jsdelivr.net/npm/redoc@2.0.0-alpha.10/bundles/redoc.standalone.js';
 
   script.onload = () => {
     scriptLoaded.value = false;
@@ -595,19 +761,21 @@ const loadRedoc = () => {
 };
 
 const initializeRedoc = () => {
-  const url = apiUrl.value || (rawYAML.value ? 'data:text/yaml;base64,' + btoa(rawYAML.value) : '');
-  if (url && window.Redoc && redocContainer.value) {
-    console.log('Initializing ReDoc with URL or raw YAML content:', url);
+  const url = apiUrl.value || (rawYAML.value ? 'data:text/yaml;base64,' + btoa(unescape(encodeURIComponent(rawYAML.value))) : '');
+
+  console.log("Initializing ReDoc with:", url);
+
+  if (window.Redoc && redocContainer.value) {
+    // Clear previous documentation
     redocContainer.value.innerHTML = '';
-    // window.Redoc.init(url, {
-      window.RedocTryItOut.init(url, {
+
+    // Re-initialize ReDoc
+    window.Redoc.init(url, {
       title: 'API Documentation',
       nativeScrollbars: true,
-      scrollYOffset: 50, // Adjust scroll offset for a better experience
+      scrollYOffset: 50,
+      tryItOutEnable: true,
     }, redocContainer.value);
-
-    // Load the RedocTryItOut.js script after ReDoc is initialized
-    loadTryItOutScript();
   } else {
     console.error('ReDoc is not available or the container is missing.');
     errorMessage.value = 'ReDoc is not available or the container is missing.';
@@ -615,19 +783,6 @@ const initializeRedoc = () => {
 };
 
 
-const loadTryItOutScript = () => {
-  const tryItOutScript = document.createElement('script');
-  // tryItOutScript.src = '/RedocTryItOut.js'; // Ensure this path is accurate
-  tryItOutScript.onload = () => {
-    console.log('RedocTryItOut script loaded successfully');
-  };
-  tryItOutScript.onerror = (error) => {
-    console.error('Failed to load RedocTryItOut script:', error);
-    errorMessage.value = 'Failed to load RedocTryItOut script.';
-  };
-
-  document.body.appendChild(tryItOutScript);
-};
 
 
 const onFileChange = (event) => {
@@ -644,6 +799,8 @@ const onFileChange = (event) => {
     reader.readAsText(file);
   }
 };
+
+
 
 watch(isPreviewVisible, (newValue) => {
   if (newValue) {
@@ -685,8 +842,6 @@ const updateDescription = () => {
 };
 
 
-
-
 // Function to load YAML from a URL
 const loadFromUrl = async () => {
   if (apiUrl.value.trim() !== '') {
@@ -712,16 +867,7 @@ const toggleFullScreen = () => {
   }
 };
 
-// Watch for changes in rawYAML and update parsedContent
-watch(rawYAML, (newVal) => {
-  try {
-    const parsedContent = yaml.load(newVal);
-    console.log(parsedContent);
-  } catch (e) {
-    console.error('Error parsing YAML: ', e);
-    errorMessage.value = 'Failed to parse YAML. Please check the file format.';
-  }
-});
+
 
 const togglePathDetails = (index) => {
 
@@ -736,35 +882,19 @@ const toggleAddPath = () => {
 
 const addQueryParam = (pathIndex) => {
   if (newQueryParam.value.name) {
-
     if (!apiPaths.value[pathIndex].methods[0].query) {
       apiPaths.value[pathIndex].methods[0].query = [];
     }
     apiPaths.value[pathIndex].methods[0].query.push({ ...newQueryParam.value });
 
+    // Reset form
     newQueryParam.value = { name: '', type: 'str', description: '' };
-    showAddQueryParamForm.value[pathIndex] = false; // Hide the form
+    showAddQueryParamForm.value[pathIndex] = false;
+
+    // Update YAML to reflect changes
+    updateYAML();
   }
 };
-
-const yamlData = ref();
-
-
-
-const downloadFile = (data, filename) => {
-  const blob = new Blob([data], { type: 'application/x-yaml' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
-};
-
-const downloadYamlFile = () => {
-  const filename = 'file.yaml';
-  downloadFile(yamlData.value, filename);
-};
-
-
 
 const removeQueryParam = (pathIndex, paramIndex) => {
   apiPaths.value[pathIndex].methods[0].query.splice(paramIndex, 1);
@@ -772,19 +902,33 @@ const removeQueryParam = (pathIndex, paramIndex) => {
 
 
 const addHeader = (pathIndex) => {
-  if (newHeader.value.name) {
-
-    if (!Array.isArray(apiPaths.value[pathIndex].methods[0].headers)) {
-      console.error(`Expected headers to be an array, but found:`, apiPaths.value[pathIndex].methods[0].headers);
-      apiPaths.value[pathIndex].methods[0].headers = [];
-    }
-    apiPaths.value[pathIndex].methods[0].headers.push({ ...newHeader.value });
-
-    // Reset form
-    newHeader.value = { name: '', type: 'str', description: '' };
-    showAddHeaderForm.value[pathIndex] = false;
+  // Validate new header fields
+  if (!newHeader.value.name || !newHeader.value.type || !newHeader.value.description) {
+    console.warn('Incomplete header data:', newHeader.value);
+    return;
   }
+
+  // Validate path and method index
+  if (!apiPaths.value[pathIndex] || !apiPaths.value[pathIndex].methods[0]) {
+    console.error('Invalid path or method index:', pathIndex);
+    return;
+  }
+
+  // Ensure headers is an array
+  const method = apiPaths.value[pathIndex].methods[0];
+  if (!Array.isArray(method.headers)) {
+    console.error(`Expected headers to be an array, but found:`, method.headers);
+    method.headers = [];
+  }
+
+  // Add the new header
+  method.headers.push({ ...newHeader.value });
+
+  // Reset the header form
+  newHeader.value = { name: '', type: 'str', description: '' };
+  showAddHeaderForm.value[pathIndex] = false; // Hide the form
 };
+
 
 
 
@@ -807,63 +951,12 @@ const resetNewPathForm = () => {
   newPath.value = { name: '', method: '', description: '', query: '', headers: '', body: '' };
 };
 
-
-
-
 const snackbarVisible = ref(false);
-
-
-const copyToClipboard = () => {
-  if (rawYAML.value) {
-    navigator.clipboard.writeText(rawYAML.value)
-      .then(() => {
-        snackbarVisible.value = true;
-        console.log("YAML copied to clipboard!");
-      })
-      .catch(err => {
-        console.error("Failed to copy: ", err);
-      });
-  } else {
-    console.warn("No YAML content to copy.");
-  }
-};
 
 
 watch(apiInfo, () => {
   updateYAMLFromApiInfo();
 }, { deep: true });
-
-
-
-// Watch for changes in rawYAML to update parsedContent
-watch(rawYAML, (newYAML) => {
-  try {
-    parsedContent.value = yaml.load(newYAML);
-    console.log("Parsed YAML content:", parsedContent.value);
-    parseAPIInfo(parsedContent.value);
-    servers.value = parsedContent.value.servers || [];
-    apiPaths.value = Object.entries(parsedContent.value.paths || {}).map(([path, methods]) => ({
-      name: path,
-      methods: Object.entries(methods).map(([method, details]) => ({
-        method: method.toUpperCase(),
-        description: details.description || '',
-        query: details.parameters || [],
-        headers: details.headers || {},
-        body: details.requestBody || {}
-      }))
-    }));
-
-    tagGroups.value = parsedContent.value['x-tagGroups'] || [];
-    webhooks.value = Object.entries(parsedContent.value['x-webhooks'] || {}).map(([name, summary]) => ({
-      name,
-      summary
-    }));
-  } catch (e) {
-    console.error("Error parsing YAML: ", e);
-  }
-});
-
-
 
 
 // Method to add a new path
@@ -883,7 +976,7 @@ const addPath = () => {
     // Reset the newPath form
     resetNewPathForm();
     showingAddPath.value = false;
-    updateYAML();  // Update YAML after adding a new path
+    updateYAML();
   } else {
     console.warn("Invalid path data:", newPath.value);
   }
@@ -891,16 +984,87 @@ const addPath = () => {
 
 
 const validateMethod = (method) => {
-  const validMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']; // Add your valid methods
+  const validMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']; 
   return validMethods.includes(method.toUpperCase()) || 'Invalid HTTP method';
 };
 
 
 // Method to remove a path
-const removePath = (index) => {
-  apiPaths.value.splice(index, 1);
+const removePath = (pathName) => {
+  delete parsedContent.value.paths[pathName];
   updateYAML();
 };
+
+
+
+const updateYAML = () => {
+  try {
+    const updatedContent = {
+      ...parsedContent.value,
+      paths: apiPaths.value.reduce((pathsAcc, path) => {
+        pathsAcc[path.name] = path.methods.reduce((methodAcc, method) => {
+          methodAcc[method.method.toLowerCase()] = {
+            description: method.description,
+            parameters: method.query || [],
+            headers: method.headers || {},
+            requestBody: method.body || {}
+          };
+          return methodAcc;
+        }, {});
+        return pathsAcc;
+      }, {})
+    };
+    rawYAML.value = yaml.dump(updatedContent);
+  } catch (e) {
+    console.error('Error updating YAML:', e);
+  }
+};
+
+
+// Watch for changes in rawYAML to update parsedContent
+
+watch(rawYAML, (newYAML) => {
+  try {
+    parsedContent.value = yaml.load(newYAML);
+    console.log("Parsed YAML content:", parsedContent.value);
+    parseAPIInfo(parsedContent.value);
+    
+    // Extract server data if exists
+    servers.value = parsedContent.value.servers || [];
+    
+    // Map paths with all necessary details including tags, operationId, and responses
+    apiPaths.value = Object.entries(parsedContent.value.paths || {}).map(([path, methods]) => ({
+      name: path,
+      methods: Object.entries(methods).map(([method, details]) => ({
+        method: method.toUpperCase(),
+        description: details.description || '',
+        query: details.parameters || [],
+        headers: details.headers || {},
+        body: details.requestBody || {},
+      }))
+    }));
+
+    // Extract tag groups if they exist
+    tagGroups.value = parsedContent.value['x-tagGroups'] || [];
+
+    // Map webhooks if they exist
+    webhooks.value = Object.entries(parsedContent.value['x-webhooks'] || {}).map(([name, summary]) => ({
+      name,
+      summary
+    }));
+
+    // Trigger ReDoc reinitialization if preview is visible
+    if (isPreviewVisible.value) {
+      initializeRedoc();
+    }
+  } catch (e) {
+    console.error("Error parsing YAML: ", e);
+  }
+});
+
+
+// Watch changes in apiPaths and keep YAML in sync
+ watch(apiPaths, updateYAML, { deep: true });
 
 
 // Function to update YAML from API info
@@ -942,45 +1106,6 @@ const parseAPIInfo = (data) => {
 };
 
 
-
-// Function to update YAML after path or server changes
-const updateYAML = () => {
-  try {
-    // Update the paths section in parsedContent
-    parsedContent.value.paths = apiPaths.value.reduce((acc, path) => {
-      acc[path.name] = path.methods.reduce((methodsAcc, method) => {
-        methodsAcc[method.method.toLowerCase()] = {
-          description: method.description,
-          parameters: method.query,
-          headers: method.headers,
-          requestBody: method.body
-        };
-        return methodsAcc;
-      }, {});
-      return acc;
-    }, {});
-
-    // Convert parsedContent back to YAML
-    rawYAML.value = yaml.dump(parsedContent.value);
-    console.log('Updated YAML:', rawYAML.value);
-  } catch (e) {
-    console.error("Error updating YAML:", e);
-  }
-};
-apiPaths.value = Object.entries(parsedContent.value.paths || {}).map(([path, methods]) => ({
-  name: path,
-  methods: Object.entries(methods).map(([method, details]) => ({
-    method: method.toUpperCase(),
-    description: details.description || '',
-    query: details.parameters || [],
-    headers: details.headers || {},
-    body: details.requestBody || {},
-    responses: details.responses || {}  // Add the responses here
-  }))
-}));
-
-
-
 const snackbar = ref(false);
 const snackbarMessage = ref('');
 const serverForm = ref({ url: '', description: '' });
@@ -988,8 +1113,8 @@ const isEditing = ref(false);
 let editingIndex = ref(null);
 
 // Store for confirmation dialog
-const confirmationDialog = ref(false); // Controls the confirmation dialog visibility
-const serverToDeleteIndex = ref(null); // Store the index of the server to delete
+const confirmationDialog = ref(false);
+const serverToDeleteIndex = ref(null);
 
 // Function to add a new server
 const addServer = () => {
@@ -1025,20 +1150,20 @@ const validateServerForm = () => {
 
 // Function to confirm deletion of a server
 const confirmRemoveServer = (index) => {
-  serverToDeleteIndex.value = index; // Store the index of the server to delete
-  confirmationDialog.value = true; // Show the confirmation dialog
+  serverToDeleteIndex.value = index;
+  confirmationDialog.value = true;
 };
 
 // Function to remove a server after confirmation
 const removeServer = () => {
   if (serverToDeleteIndex.value !== null) {
-    servers.value.splice(serverToDeleteIndex.value, 1); // Remove the server
-    updateYAML();
+    servers.value.splice(serverToDeleteIndex.value, 1);
+    updateYAMLFromApiInfo();
     snackbarMessage.value = 'Server deleted successfully!';
     snackbar.value = true;
   }
-  confirmationDialog.value = false; // Close the confirmation dialog
-  serverToDeleteIndex.value = null; // Reset the delete index
+  confirmationDialog.value = false;
+  serverToDeleteIndex.value = null;
 };
 
 // Function to edit a server
@@ -1127,7 +1252,33 @@ const contactFields = [
   { name: 'url', label: 'URL', type: 'url' }
 ];
 
+const copyToClipboard = () => {
+  if (rawYAML.value) {
+    navigator.clipboard.writeText(rawYAML.value)
+      .then(() => {
+        snackbarVisible.value = true;
+        console.log("YAML copied to clipboard!");
+      })
+      .catch(err => {
+        console.error("Failed to copy: ", err);
+      });
+  } else {
+    console.warn("No YAML content Watchto copy.");
+  }
+};
 
+const downloadFile = (data, filename) => {
+  const blob = new Blob([data], { type: 'application/x-yaml' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+};
+
+const downloadYamlFile = () => {
+  const filename = 'file.yaml';
+  downloadFile(yamlData.value, filename);
+};
 
 </script>
 
@@ -1135,8 +1286,6 @@ const contactFields = [
 
 
 <style scoped>
-
-
 .redoc-container {
   background-color: #ffffff;
   padding: 0px;
@@ -1146,7 +1295,20 @@ const contactFields = [
   box-shadow: none;
 }
 
+.no-underline {
+  text-decoration: none; /* Removes the underline */
+}
 
+h1.sc-jWBwVP.lppoWu {
+  color: #df541d; /* Change the color */
+  font-family: 'Arial', sans-serif;
+  font-size: 2000rem; /* Adjust the size */
+}
+
+h1.sc-jWBwVP.lppoWu span {
+  color: #6b7280; /* Style the (v1) */
+  font-size: 1rem;
+}
 
 
 
@@ -1196,7 +1358,9 @@ const contactFields = [
   align-items: center;
 }
 
-
+.v-btn {
+  margin-top: 0px;
+}
 
 .download-btn {
   position: absolute;
@@ -1325,6 +1489,14 @@ const contactFields = [
   margin-left: auto;
 }
 
+
+.right-align-row {
+  display: flex;
+  justify-content: flex-end; /* Aligns content to the right */
+  margin-left: 1500px;
+
+  
+}
 /* Main Editor Container */
 .vs-code-editor-container {
   background-color: #1e1e1e;
