@@ -5,26 +5,22 @@
 
       <!-- Header -->
 
-      
+
       <h1 class="text-center mb-4" style="color: #FF5733; font-weight: bold; font-size: 2.5em;">
         .YAML File Uploader
       </h1>
 
       <v-row class="right-align-row">
-  <v-col>
-    <nuxt-link to="/gen" class="no-underline">
-      <v-btn
-        color="#FF5733"
-        class="d-flex align-center right-align-btn"
-        elevation="2"
-        rounded
-      >
-        <span class="mr-2"> Gen-YAML </span>
-        <v-icon right>mdi-arrow-right</v-icon> 
-      </v-btn>
-    </nuxt-link>
-  </v-col>
-</v-row>
+        <v-col class="d-flex justify-end">
+          <nuxt-link to="/gen" class="no-underline">
+            <v-btn color="#FF5733" class="d-flex align-center me-1" elevation="2" rounded>
+              <span class="me-2"> Gen-YAML </span>
+              <v-icon>mdi-arrow-right</v-icon>
+            </v-btn>
+          </nuxt-link>
+        </v-col>
+      </v-row>
+
 
 
 
@@ -197,37 +193,37 @@
 
 
           <div class="d-flex justify-start mt-4">
-    <!-- Toggle Preview Button -->
-    <div class="d-flex justify-end mt-4" style="position: absolute; top: 1px; right: 55px;">
-      <v-btn @click="togglePreview" class="mx-2"
-        style="border-radius: 12px; box-shadow: 0px 6px 18px rgba(0, 0, 0, 0.15); font-weight: 500; transition: all 0.3s ease-in-out;">
-        <v-icon left>mdi-eye</v-icon> Preview
-      </v-btn>
-    </div>
+            <!-- Toggle Preview Button -->
+            <div class="d-flex justify-end mt-4" style="position: absolute; top: 1px; right: 55px;">
+              <v-btn @click="togglePreview" class="mx-2"
+                style="border-radius: 12px; box-shadow: 0px 6px 18px rgba(0, 0, 0, 0.15); font-weight: 500; transition: all 0.3s ease-in-out;">
+                <v-icon left>mdi-eye</v-icon> Preview
+              </v-btn>
+            </div>
 
-    <!-- Dialog for API Documentation Preview -->
-    <v-dialog v-model="isPreviewVisible" fullscreen persistent>
-      <v-card class="d-flex flex-column" style="height: 100vh; width: 100vw; border-radius: 0; overflow: hidden;">
-        
-        <v-card-text class="flex-grow-1" style="overflow-y: auto; padding: 0;">
-          <div ref="redocContainer" class="redoc-container" style="height: 100%; position: relative;">
-            <!-- Documentation content here -->
-          </div>
-        </v-card-text>
+            <!-- Dialog for API Documentation Preview -->
+            <v-dialog v-model="isPreviewVisible" fullscreen persistent>
+              <v-card class="d-flex flex-column"
+                style="height: 100vh; width: 100vw; border-radius: 0; overflow: hidden;">
+
+                <v-card-text class="flex-grow-1" style="overflow-y: auto; padding: 0;">
+                  <div ref="redocContainer" class="redoc-container" style="height: 100%; position: relative;">
+                    <!-- Documentation content here -->
+                  </div>
+                </v-card-text>
 
 
 
-        <!-- Close Button -->
-        <v-card-actions
-          class="d-flex justify-center align-center"
-          style="position: absolute; bottom: 20px; width: 100%; z-index: 10;">
-          <v-btn color="red" @click="togglePreview" elevation="10"
-            style="border-radius: 50%; padding: 6px; box-shadow: 0px 6px 20px #FF5733; transition: all 0.3s ease-in-out;">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+                <!-- Close Button -->
+                <v-card-actions class="d-flex justify-center align-center"
+                  style="position: absolute; bottom: 20px; width: 100%; z-index: 10;">
+                  <v-btn color="red" @click="togglePreview" elevation="10"
+                    style="border-radius: 50%; padding: 6px; box-shadow: 0px 6px 20px #FF5733; transition: all 0.3s ease-in-out;">
+                    <v-icon>mdi-close</v-icon>
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
 
 
 
@@ -238,316 +234,202 @@
             <v-icon>mdi-fullscreen</v-icon>
           </v-btn>
 
-         <div v-if="activeSection === 'paths'" class="path-section">
-  <h2 class="text-h5" style="color: #FF5733 ; margin-bottom: 15px;"></h2>
+          <div v-if="activeSection === 'paths'" class="path-section">
+            <h2 class="text-h5" style="color: #FF5733 ; margin-bottom: 15px;"></h2>
 
-  <div v-for="(path, index) in apiPaths" :key="index" class="path-item mb-4 border rounded-lg p-4 shadow-lg bg-white">
-    <div @click="togglePathDetails(index)" class="path-heading" style="cursor: pointer;">
-      <strong>{{ path.name }}</strong>
-      <v-icon>{{ activePathIndex === index ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
-    </div>
+            <div v-for="(path, index) in apiPaths" :key="index"
+              class="path-item mb-4 border rounded-lg p-4 shadow-lg bg-white">
+              <div @click="togglePathDetails(index)" class="path-heading" style="cursor: pointer;">
+                <strong>{{ path.name }}</strong>
+                <v-icon>{{ activePathIndex === index ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+              </div>
 
-    <div v-if="activePathIndex === index" class="path-details mt-3">
-      <div v-for="(method, mIndex) in path.methods" :key="mIndex" class="method-item mb-2">
-  <!-- Dropdown for HTTP Method selection -->
-  <v-select
-    v-model="method.method"
-    :items="['GET', 'POST', 'PUT', 'DELETE', 'PATCH']"
-    label="HTTP Method"
-    variant="outlined"
-    :rules="[validateMethod]"
-    outlined
-  />
-  
-  <!-- Description textarea -->
-  <v-textarea
-    v-model="method.description"
-    label="Description"
-    variant="outlined"
-    outlined
-    class="mt-2"
-  />
-</div>
+              <div v-if="activePathIndex === index" class="path-details mt-3">
+                <div v-for="(method, mIndex) in path.methods" :key="mIndex" class="method-item mb-2">
+                  <!-- Dropdown for HTTP Method selection -->
+                  <v-select v-model="method.method" :items="['GET', 'POST', 'PUT', 'DELETE', 'PATCH']"
+                    label="HTTP Method" variant="outlined" :rules="[validateMethod]" outlined />
+
+                  <!-- Description textarea -->
+                  <v-textarea v-model="method.description" label="Description" variant="outlined" outlined
+                    class="mt-2" />
+                </div>
 
 
-<div class="mt-3">
-  <strong style="font-size: 1.2em; color: #333; font-weight: 600;">Query Parameters:</strong>
-  <div v-for="(param, paramIndex) in path.methods[0].query" :key="paramIndex" class="query-param mb-3">
-    <v-row align="center" no-gutters>
-      <!-- Parameter Name Input -->
-      <v-col cols="4">
-        <v-text-field
-          v-model="param.name"
-          label="Parameter Name"
-          outlined
-          dense
-          color="primary"
-          class="my-2"
-          :rules="[v => !!v || 'Required']"
-        />
-      </v-col>
-      
-      <!-- Parameter Type Dropdown -->
-      <v-col cols="3">
-        <v-select
-          v-model="param.type"
-          :items="queryParamTypes"
-          label="Type"
-          outlined
-          dense
-          color="primary"
-          class="my-2"
-        />
-      </v-col>
+                <div class="mt-3">
+                  <strong style="font-size: 1.2em; color: #333; font-weight: 600;">Query Parameters:</strong>
+                  <div v-for="(param, paramIndex) in path.methods[0].query" :key="paramIndex" class="query-param mb-3">
+                    <v-row align="center" no-gutters>
+                      <!-- Parameter Name Input -->
+                      <v-col cols="4">
+                        <v-text-field v-model="param.name" label="Parameter Name" outlined dense color="primary"
+                          class="my-2" :rules="[v => !!v || 'Required']" />
+                      </v-col>
 
-      <!-- Parameter Description Textarea -->
-      <v-col cols="4">
-        <v-textarea
-          v-model="param.description"
-          label="Description"
-          outlined
-          rows="1"
-          dense
-          color="primary"
-          class="my-2"
-        />
-      </v-col>
+                      <!-- Parameter Type Dropdown -->
+                      <v-col cols="3">
+                        <v-select v-model="param.type" :items="queryParamTypes" label="Type" outlined dense
+                          color="primary" class="my-2" />
+                      </v-col>
 
-      <!-- Remove Button -->
-      <v-col cols="1" class="d-flex align-center">
-        <v-btn
-          @click="removeQueryParam(index, paramIndex)"
-          icon
-          color="red"
-          class="my-2"
-        >
-          <v-icon>mdi-delete</v-icon>
-        </v-btn>
-      </v-col>
-    </v-row>
-  </div>
+                      <!-- Parameter Description Textarea -->
+                      <v-col cols="4">
+                        <v-textarea v-model="param.description" label="Description" outlined rows="1" dense
+                          color="primary" class="my-2" />
+                      </v-col>
 
-  <!-- Add Query Parameter Button -->
-  <v-btn
-  @click="toggleAddQueryParamForm(index)"
-  color=#FF5733
-  small
-  outlined
-  dense
-  class="mt-3"
->
-  {{ showAddQueryParamForm[index] ? 'Cancel' : 'Add' }}
-</v-btn>
+                      <!-- Remove Button -->
+                      <v-col cols="1" class="d-flex align-center">
+                        <v-btn @click="removeQueryParam(index, paramIndex)" icon color="red" class="my-2">
+                          <v-icon>mdi-delete</v-icon>
+                        </v-btn>
+                      </v-col>
+                    </v-row>
+                  </div>
+
+                  <!-- Add Query Parameter Button -->
+                  <v-btn @click="toggleAddQueryParamForm(index)" color=#FF5733 small outlined dense class="mt-3">
+                    {{ showAddQueryParamForm[index] ? 'Cancel' : 'Add' }}
+                  </v-btn>
 
 
-  <v-expand-transition>
-    <div v-if="showAddQueryParamForm[index]" class="mt-2">
-      <v-row align="center" no-gutters>
-        <!-- New Query Parameter Name -->
-        <v-col cols="4">
-          <v-text-field
-            v-model="newQueryParam.name"
-            label="Parameter Name"
-          variant =  "outlined"
-          
-            class="my-2"
-            color="primary"
-          />
-        </v-col>
+                  <v-expand-transition>
+                    <div v-if="showAddQueryParamForm[index]" class="mt-2">
+                      <v-row align="center" no-gutters>
+                        <!-- New Query Parameter Name -->
+                        <v-col cols="4">
+                          <v-text-field v-model="newQueryParam.name" label="Parameter Name" variant="outlined"
+                            class="my-2" color="primary" />
+                        </v-col>
 
-        <!-- New Query Parameter Type -->
-        <v-col cols="3">
-          <v-select
-            v-model="newQueryParam.type"
-            :items="queryParamTypes"
-            label="Type"
-             variant = "outlined"
-            
-            class="my-2"
-            color="primary"
-          />
-        </v-col>
+                        <!-- New Query Parameter Type -->
+                        <v-col cols="3">
+                          <v-select v-model="newQueryParam.type" :items="queryParamTypes" label="Type"
+                            variant="outlined" class="my-2" color="primary" />
+                        </v-col>
 
-        <!-- New Query Parameter Description -->
-        <v-col cols="4">
-          <v-textarea
-            v-model="newQueryParam.description"
-            label="Description"
-           variant = "outlined"
-            rows="1"
-           
-            class="my-2"
-            color="primary"
-          />
-        </v-col>
+                        <!-- New Query Parameter Description -->
+                        <v-col cols="4">
+                          <v-textarea v-model="newQueryParam.description" label="Description" variant="outlined"
+                            rows="1" class="my-2" color="primary" />
+                        </v-col>
 
-        <!-- Save Button -->
-        <v-col cols="1" class="d-flex align-center">
-          <v-btn
-            @click="addQueryParam(index)"
-            color="success"
-            small
-            class="my-2"
-          >
-            Save
-          </v-btn>
-        </v-col>
-      </v-row>
-    </div>
-  </v-expand-transition>
-</div>
+                        <!-- Save Button -->
+                        <v-col cols="1" class="d-flex align-center">
+                          <v-btn @click="addQueryParam(index)" color="success" small class="my-2">
+                            Save
+                          </v-btn>
+                        </v-col>
+                      </v-row>
+                    </div>
+                  </v-expand-transition>
+                </div>
 
-<div class="mt-3">
-  <strong style="font-size: 1.2em; color: #333; font-weight: 600;">Headers :</strong>
-  <div v-for="(header, headerIndex) in path.methods[0].headers" :key="headerIndex" class="header-item mb-2">
-    <v-row align="center" no-gutters>
-      <v-col cols="4">
-        <v-text-field
-          v-model="header.name"
-          label="Header Name"
-          outlined
-          dense
-          color="primary"
-          class="my-2"
-          :rules="[v => !!v || 'Required']"
-        />
-      </v-col>
-      <v-col cols="3">
-        <v-select
-          v-model="header.type"
-          :items="headerTypes"
-          label="Type"
-          outlined
-          dense
-          color="primary"
-          class="my-2"
-        />
-      </v-col>
-      <v-col cols="4">
-        <v-textarea
-          v-model="header.description"
-          label="Description"
-          outlined
-          dense
-          color="primary"
-          class="my-2"
-        />
-      </v-col>
-      <v-col cols="1" class="d-flex align-center">
-        <v-btn @click="removeHeader(index, headerIndex)" icon>
-          <v-icon style="color: #FF5733;">mdi-delete</v-icon>
-        </v-btn>
-      </v-col>
-    </v-row>
-  </div>
+                <div class="mt-3">
+                  <strong style="font-size: 1.2em; color: #333; font-weight: 600;">Headers :</strong>
+                  <div v-for="(header, headerIndex) in path.methods[0].headers" :key="headerIndex"
+                    class="header-item mb-2">
+                    <v-row align="center" no-gutters>
+                      <v-col cols="4">
+                        <v-text-field v-model="header.name" label="Header Name" outlined dense color="primary"
+                          class="my-2" :rules="[v => !!v || 'Required']" />
+                      </v-col>
+                      <v-col cols="3">
+                        <v-select v-model="header.type" :items="headerTypes" label="Type" outlined dense color="primary"
+                          class="my-2" />
+                      </v-col>
+                      <v-col cols="4">
+                        <v-textarea v-model="header.description" label="Description" outlined dense color="primary"
+                          class="my-2" />
+                      </v-col>
+                      <v-col cols="1" class="d-flex align-center">
+                        <v-btn @click="removeHeader(index, headerIndex)" icon>
+                          <v-icon style="color: #FF5733;">mdi-delete</v-icon>
+                        </v-btn>
+                      </v-col>
+                    </v-row>
+                  </div>
 
-  <v-btn
-    @click="toggleAddHeaderForm(index)"
-    style="background-color: #FF5733; color: white;"
-    small
-  >
-    {{ showAddHeaderForm[index] ? 'Cancel' : 'Add Header' }}
-  </v-btn>
+                  <v-btn @click="toggleAddHeaderForm(index)" style="background-color: #FF5733; color: white;" small>
+                    {{ showAddHeaderForm[index] ? 'Cancel' : 'Add Header' }}
+                  </v-btn>
 
-  <v-expand-transition>
-    <div v-if="showAddHeaderForm[index]" class="mt-2">
-      <v-row align="center" no-gutters>
-        <v-col cols="4">
-          <v-text-field
-            v-model="newHeader.name"
-            label="Header Name"
-            variant = "outlined"
-            dense
-            color="primary"
-            class="my-2"
-          />
-        </v-col>
-        <v-col cols="3">
-          <v-select
-            v-model="newHeader.type"
-            :items="headerTypes"
-            label="Type"
-            variant ="outlined"
-            dense
-            color="primary"
-            class="my-2"
-          />
-        </v-col>
-        <v-col cols="4">
-          <v-textarea
-            v-model="newHeader.description"
-            label="Description"
-           variant ="outlined"
-            dense
-            color="primary"
-            class="my-2"
-          />
-        </v-col>
-        <v-col cols="1" class="d-flex align-center">
-          <v-btn
-            @click="addHeader(index)"
-            color="success"
-            small
-          >
-            Save Header
-          </v-btn>
-        </v-col>
-      </v-row>
-    </div>
-  </v-expand-transition>
-</div>
+                  <v-expand-transition>
+                    <div v-if="showAddHeaderForm[index]" class="mt-2">
+                      <v-row align="center" no-gutters>
+                        <v-col cols="4">
+                          <v-text-field v-model="newHeader.name" label="Header Name" variant="outlined" dense
+                            color="primary" class="my-2" />
+                        </v-col>
+                        <v-col cols="3">
+                          <v-select v-model="newHeader.type" :items="headerTypes" label="Type" variant="outlined" dense
+                            color="primary" class="my-2" />
+                        </v-col>
+                        <v-col cols="4">
+                          <v-textarea v-model="newHeader.description" label="Description" variant="outlined" dense
+                            color="primary" class="my-2" />
+                        </v-col>
+                        <v-col cols="1" class="d-flex align-center">
+                          <v-btn @click="addHeader(index)" color="success" small>
+                            Save Header
+                          </v-btn>
+                        </v-col>
+                      </v-row>
+                    </div>
+                  </v-expand-transition>
+                </div>
 
 
-<div class="mt-3">
+                <div class="mt-3">
                   <strong>Body:</strong>
                   <v-textarea v-model="path.methods[0].body" label="Body" outlined />
                 </div>
 
 
 
-      <v-btn @click.stop="removePath(index)" icon color="red" class="mt-2">
-        <v-icon>mdi-delete</v-icon>
-      </v-btn>
-    </div>
-  </div>
+                <v-btn @click.stop="removePath(index)" icon color="red" class="mt-2">
+                  <v-icon>mdi-delete</v-icon>
+                </v-btn>
+              </div>
+            </div>
 
-  <v-btn @click="toggleAddPath" style="background-color: #FF5733; color: white;" class="mb-2">
-    {{ showingAddPath ? 'Cancel' : 'Add Path' }}
-  </v-btn>
+            <v-btn @click="toggleAddPath" style="background-color: #FF5733; color: white;" class="mb-2">
+              {{ showingAddPath ? 'Cancel' : 'Add Path' }}
+            </v-btn>
 
-  <transition name="fade">
-    <div v-if="showingAddPath" class="add-path-form border rounded-lg p-4 bg-white shadow-lg">
-      <v-text-field v-model="newPath.name" label="Path Name" outlined :rules="[v => !!v || 'Required']" />
-      <v-text-field v-model="newPath.method" label="HTTP Method" outlined :rules="[validateMethod]" />
-      <v-textarea v-model="newPath.description" label="Description" outlined />
+            <transition name="fade">
+              <div v-if="showingAddPath" class="add-path-form border rounded-lg p-4 bg-white shadow-lg">
+                <v-text-field v-model="newPath.name" label="Path Name" outlined :rules="[v => !!v || 'Required']" />
+                <v-text-field v-model="newPath.method" label="HTTP Method" outlined :rules="[validateMethod]" />
+                <v-textarea v-model="newPath.description" label="Description" outlined />
 
-      <v-list>
-        <v-list-item>
-          <v-list-item-content>
-            <v-list-item-title><strong>Query Parameters:</strong></v-list-item-title>
-            <v-text-field v-model="newPath.query" label="Query Parameters (comma separated)" outlined />
-          </v-list-item-content>
-        </v-list-item>
+                <v-list>
+                  <v-list-item>
+                    <v-list-item-content>
+                      <v-list-item-title><strong>Query Parameters:</strong></v-list-item-title>
+                      <v-text-field v-model="newPath.query" label="Query Parameters (comma separated)" outlined />
+                    </v-list-item-content>
+                  </v-list-item>
 
-        <v-list-item>
-          <v-list-item-content>
-            <v-list-item-title><strong>Headers:</strong></v-list-item-title>
-            <v-textarea v-model="newPath.headers" label="Headers (JSON format)" outlined />
-          </v-list-item-content>
-        </v-list-item>
+                  <v-list-item>
+                    <v-list-item-content>
+                      <v-list-item-title><strong>Headers:</strong></v-list-item-title>
+                      <v-textarea v-model="newPath.headers" label="Headers (JSON format)" outlined />
+                    </v-list-item-content>
+                  </v-list-item>
 
-        <v-list-item>
-          <v-list-item-content>
-            <v-list-item-title><strong>Body:</strong></v-list-item-title>
-            <v-textarea v-model="newPath.body" label="Body (JSON format)" outlined />
-          </v-list-item-content>
-        </v-list-item>
-      </v-list>
+                  <v-list-item>
+                    <v-list-item-content>
+                      <v-list-item-title><strong>Body:</strong></v-list-item-title>
+                      <v-textarea v-model="newPath.body" label="Body (JSON format)" outlined />
+                    </v-list-item-content>
+                  </v-list-item>
+                </v-list>
 
-      <v-btn @click="addPath" color="success" class="mt-2">Save Path</v-btn>
-    </div>
-  </transition>
-</div>
+                <v-btn @click="addPath" color="success" class="mt-2">Save Path</v-btn>
+              </div>
+            </transition>
+          </div>
 
 
 
@@ -627,10 +509,10 @@
           <div v-if="activeSection === 'code'" class="vs-code-editor-container mt-4">
 
             <!-- Copy to Clipboard Button -->
-            <v-btn @click="copyToClipboard" color="primary" class="mt-2 copy-btn" elevation="1"
+            <v-btn @click="copyToClipboard" color="primary" class="mt-0 copy-btn" elevation="2"
               @mouseover="hovered = true" @mouseleave="hovered = false">
               <v-icon left>mdi-content-copy</v-icon>
-              <span :class="{ 'font-weight-bold': hovered }">Copy YAML to Clipboard</span>
+              <span :class="{ 'font-weight-bold': hovered }">Copy YAML</span>
             </v-btn>
 
             <v-snackbar v-model="snackbarVisible" color="success" timeout="3000">
@@ -697,9 +579,13 @@
 
 <script setup>
 
-import { ref, watch  } from 'vue';
+import { ref, watch } from 'vue';
 import yaml from 'js-yaml';
 import Monaco from '@/components/core/Monaco';
+
+
+
+
 
 
 // Reactive variables
@@ -735,54 +621,55 @@ const errorMessage = ref('');
 const redocContainer = ref(null);
 
 
+
 const togglePreview = () => {
   isPreviewVisible.value = !isPreviewVisible.value;
 };
 
 const loadRedoc = () => {
-  if (scriptLoaded.value) {
+  if (scriptLoaded.value && window.Redoc) {
     initializeRedoc();
     return;
   }
 
+  scriptLoaded.value = false; // Reset flag to allow reloading
+  
   const script = document.createElement('script');
   script.src = 'https://cdn.jsdelivr.net/npm/redoc@2.0.0-alpha.10/bundles/redoc.standalone.js';
 
   script.onload = () => {
-    scriptLoaded.value = false;
+   // scriptLoaded.value = false;
     initializeRedoc();
   };
+
   script.onerror = (error) => {
     console.error('Failed to load ReDoc script:', error);
     errorMessage.value = 'Failed to load ReDoc script.';
+    scriptLoaded.value = false;
   };
 
   document.body.appendChild(script);
 };
 
+
 const initializeRedoc = () => {
-  const url = apiUrl.value || (rawYAML.value ? 'data:text/yaml;base64,' + btoa(unescape(encodeURIComponent(rawYAML.value))) : '');
-
-  console.log("Initializing ReDoc with:", url);
-
-  if (window.Redoc && redocContainer.value) {
-    // Clear previous documentation
+  const url = apiUrl.value || (rawYAML.value ? 'data:text/yaml;base64,' + btoa(rawYAML.value) : '');
+  
+  if (url && window.Redoc && redocContainer.value) {
+  //  console.log('Initializing ReDoc with URL or raw YAML content:', url);
     redocContainer.value.innerHTML = '';
-
-    // Re-initialize ReDoc
     window.Redoc.init(url, {
       title: 'API Documentation',
       nativeScrollbars: true,
       scrollYOffset: 50,
       tryItOutEnable: true,
     }, redocContainer.value);
+
   } else {
     console.error('ReDoc is not available or the container is missing.');
     errorMessage.value = 'ReDoc is not available or the container is missing.';
   }
 };
-
-
 
 
 const onFileChange = (event) => {
@@ -791,7 +678,7 @@ const onFileChange = (event) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       rawYAML.value = e.target.result;
-      console.log('Uploaded YAML content:', rawYAML.value);
+
       if (isPreviewVisible.value) {
         initializeRedoc();
       }
@@ -807,6 +694,7 @@ watch(isPreviewVisible, (newValue) => {
     loadRedoc();
   }
 });
+
 
 const descriptionField = ref(null);
 
@@ -842,6 +730,8 @@ const updateDescription = () => {
 };
 
 
+
+
 // Function to load YAML from a URL
 const loadFromUrl = async () => {
   if (apiUrl.value.trim() !== '') {
@@ -849,7 +739,7 @@ const loadFromUrl = async () => {
       const response = await fetch(apiUrl.value);
       if (!response.ok) throw new Error('Network response was not ok');
       rawYAML.value = await response.text();
-      console.log('YAML loaded from URL:', rawYAML.value);
+
     } catch (error) {
       console.error('Error loading from URL:', error);
     }
@@ -904,20 +794,20 @@ const removeQueryParam = (pathIndex, paramIndex) => {
 const addHeader = (pathIndex) => {
   // Validate new header fields
   if (!newHeader.value.name || !newHeader.value.type || !newHeader.value.description) {
-    console.warn('Incomplete header data:', newHeader.value);
+
     return;
   }
 
   // Validate path and method index
   if (!apiPaths.value[pathIndex] || !apiPaths.value[pathIndex].methods[0]) {
-    console.error('Invalid path or method index:', pathIndex);
+
     return;
   }
 
   // Ensure headers is an array
   const method = apiPaths.value[pathIndex].methods[0];
   if (!Array.isArray(method.headers)) {
-    console.error(`Expected headers to be an array, but found:`, method.headers);
+
     method.headers = [];
   }
 
@@ -951,7 +841,26 @@ const resetNewPathForm = () => {
   newPath.value = { name: '', method: '', description: '', query: '', headers: '', body: '' };
 };
 
+
+
+
 const snackbarVisible = ref(false);
+
+
+const copyToClipboard = () => {
+  if (rawYAML.value) {
+    navigator.clipboard.writeText(rawYAML.value)
+      .then(() => {
+        snackbarVisible.value = true;
+        console.log("YAML copied to clipboard!");
+      })
+      .catch(err => {
+        console.error("Failed to copy: ", err);
+      });
+  } else {
+    console.warn("No YAML content to copy.");
+  }
+};
 
 
 watch(apiInfo, () => {
@@ -959,9 +868,40 @@ watch(apiInfo, () => {
 }, { deep: true });
 
 
+
+// Watch for changes in rawYAML to update parsedContent
+
+watch(rawYAML, (newYAML) => {
+  if (newYAML && typeof newYAML === 'string') {
+    try {
+      parsedContent.value = yaml.load(newYAML);
+      parseAPIInfo(parsedContent.value);
+      servers.value = parsedContent.value.servers || [];
+      apiPaths.value = Object.entries(parsedContent.value.paths || {}).map(([path, methods]) => ({
+        name: path,
+        methods: Object.entries(methods).map(([method, details]) => ({
+          method: method.toUpperCase(),
+          description: details.description || '',
+          query: details.parameters || [],
+          headers: details.headers || {},
+          body: details.requestBody || {},
+        }))
+      }));
+      tagGroups.value = parsedContent.value['x-tagGroups'] || [];
+      webhooks.value = Object.entries(parsedContent.value['x-webhooks'] || {}).map(([name, summary]) => ({
+        name,
+        summary
+      }));
+    } catch (e) {
+      console.error("Error parsing YAML: ", e);
+    }
+  }
+});
+
+
+
 // Method to add a new path
 const addPath = () => {
-
   if (newPath.value.name && validateMethod(newPath.value.method)) {
     apiPaths.value.push({
       name: newPath.value.name,
@@ -973,9 +913,11 @@ const addPath = () => {
         body: newPath.value.body
       }]
     });
-    // Reset the newPath form
+    // Reset the form
     resetNewPathForm();
     showingAddPath.value = false;
+
+    // Update YAML after adding a new path
     updateYAML();
   } else {
     console.warn("Invalid path data:", newPath.value);
@@ -984,87 +926,16 @@ const addPath = () => {
 
 
 const validateMethod = (method) => {
-  const validMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']; 
+  const validMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']; // Add your valid methods
   return validMethods.includes(method.toUpperCase()) || 'Invalid HTTP method';
 };
 
 
 // Method to remove a path
-const removePath = (pathName) => {
-  delete parsedContent.value.paths[pathName];
+const removePath = (index) => {
+  apiPaths.value.splice(index, 1);
   updateYAML();
 };
-
-
-
-const updateYAML = () => {
-  try {
-    const updatedContent = {
-      ...parsedContent.value,
-      paths: apiPaths.value.reduce((pathsAcc, path) => {
-        pathsAcc[path.name] = path.methods.reduce((methodAcc, method) => {
-          methodAcc[method.method.toLowerCase()] = {
-            description: method.description,
-            parameters: method.query || [],
-            headers: method.headers || {},
-            requestBody: method.body || {}
-          };
-          return methodAcc;
-        }, {});
-        return pathsAcc;
-      }, {})
-    };
-    rawYAML.value = yaml.dump(updatedContent);
-  } catch (e) {
-    console.error('Error updating YAML:', e);
-  }
-};
-
-
-// Watch for changes in rawYAML to update parsedContent
-
-watch(rawYAML, (newYAML) => {
-  try {
-    parsedContent.value = yaml.load(newYAML);
-    console.log("Parsed YAML content:", parsedContent.value);
-    parseAPIInfo(parsedContent.value);
-    
-    // Extract server data if exists
-    servers.value = parsedContent.value.servers || [];
-    
-    // Map paths with all necessary details including tags, operationId, and responses
-    apiPaths.value = Object.entries(parsedContent.value.paths || {}).map(([path, methods]) => ({
-      name: path,
-      methods: Object.entries(methods).map(([method, details]) => ({
-        method: method.toUpperCase(),
-        description: details.description || '',
-        query: details.parameters || [],
-        headers: details.headers || {},
-        body: details.requestBody || {},
-      }))
-    }));
-
-    // Extract tag groups if they exist
-    tagGroups.value = parsedContent.value['x-tagGroups'] || [];
-
-    // Map webhooks if they exist
-    webhooks.value = Object.entries(parsedContent.value['x-webhooks'] || {}).map(([name, summary]) => ({
-      name,
-      summary
-    }));
-
-    // Trigger ReDoc reinitialization if preview is visible
-    if (isPreviewVisible.value) {
-      initializeRedoc();
-    }
-  } catch (e) {
-    console.error("Error parsing YAML: ", e);
-  }
-});
-
-
-// Watch changes in apiPaths and keep YAML in sync
- watch(apiPaths, updateYAML, { deep: true });
 
 
 // Function to update YAML from API info
@@ -1084,7 +955,7 @@ const updateYAMLFromApiInfo = () => {
     };
     // Convert parsedContent back to YAML
     rawYAML.value = yaml.dump(parsedContent.value);
-    console.log('YAML updated with new API Info:', rawYAML.value);
+
   } catch (e) {
     console.error("Error updating YAML from API Info:", e);
   }
@@ -1104,6 +975,43 @@ const parseAPIInfo = (data) => {
 
   apiInfo.value.license = data.info?.license || {};
 };
+
+
+const updateYAML = () => {
+  try {
+    const updatedContent = {
+      ...parsedContent.value,
+      paths: apiPaths.value.reduce((pathsAcc, path) => {
+        pathsAcc[path.name] = path.methods.reduce((methodAcc, method) => {
+          methodAcc[method.method.toLowerCase()] = {
+            description: method.description,
+            parameters: method.query || [],
+            headers: method.headers || [],
+          };
+          return methodAcc;
+        }, {});
+        return pathsAcc;
+      }, {})
+    };
+
+    // Update the raw YAML
+    rawYAML.value = yaml.dump(updatedContent);
+
+    // Trigger ReDoc re-render if preview is visible
+    if (isPreviewVisible.value) {
+      initializeRedoc();  // Manually reinitialize ReDoc
+    }
+
+  } catch (e) {
+    console.error('Error updating YAML:', e);
+  }
+};
+
+
+// Watch changes in apiPaths and keep YAML in sync
+//watch(apiPaths, updateYAML, { deep: true });
+
+
 
 
 const snackbar = ref(false);
@@ -1178,8 +1086,10 @@ const editServer = (index) => {
 const updateServer = () => {
   if (editingIndex.value !== null) {
     servers.value[editingIndex.value] = { ...serverForm.value };
+    updateYAML(); // Update the OpenAPI YAML
+    apiUrl.value = serverForm.value.url; // Update the API URL
+    initializeRedoc(); // Reload ReDoc
     resetServerForm();
-    updateYAML();
     showingAddServer.value = false;
   }
 };
@@ -1190,9 +1100,6 @@ const resetServerForm = () => {
   isEditing.value = false;
   editingIndex.value = null;
 };
-
-
-
 
 
 // Function to add a new tag group
@@ -1226,6 +1133,19 @@ const toggleAddWebhook = () => {
   showingAddWebhook.value = !showingAddWebhook.value;
 };
 
+const downloadFile = (data, filename) => {
+  const blob = new Blob([data], { type: 'application/x-yaml' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+};
+
+const downloadYamlFile = () => {
+  const filename = 'file.yaml';
+  downloadFile(yamlData.value, filename);
+};
+
 // Define headers for tables
 const serverHeaders = [
   { text: 'URL', value: 'url' },
@@ -1252,33 +1172,7 @@ const contactFields = [
   { name: 'url', label: 'URL', type: 'url' }
 ];
 
-const copyToClipboard = () => {
-  if (rawYAML.value) {
-    navigator.clipboard.writeText(rawYAML.value)
-      .then(() => {
-        snackbarVisible.value = true;
-        console.log("YAML copied to clipboard!");
-      })
-      .catch(err => {
-        console.error("Failed to copy: ", err);
-      });
-  } else {
-    console.warn("No YAML content Watchto copy.");
-  }
-};
 
-const downloadFile = (data, filename) => {
-  const blob = new Blob([data], { type: 'application/x-yaml' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
-};
-
-const downloadYamlFile = () => {
-  const filename = 'file.yaml';
-  downloadFile(yamlData.value, filename);
-};
 
 </script>
 
@@ -1296,17 +1190,21 @@ const downloadYamlFile = () => {
 }
 
 .no-underline {
-  text-decoration: none; /* Removes the underline */
+  text-decoration: none;
+  /* Removes the underline */
 }
 
 h1.sc-jWBwVP.lppoWu {
-  color: #df541d; /* Change the color */
+  color: #df541d;
+  /* Change the color */
   font-family: 'Arial', sans-serif;
-  font-size: 2000rem; /* Adjust the size */
+  font-size: 2000rem;
+  /* Adjust the size */
 }
 
 h1.sc-jWBwVP.lppoWu span {
-  color: #6b7280; /* Style the (v1) */
+  color: #6b7280;
+  /* Style the (v1) */
   font-size: 1rem;
 }
 
@@ -1492,11 +1390,13 @@ h1.sc-jWBwVP.lppoWu span {
 
 .right-align-row {
   display: flex;
-  justify-content: flex-end; /* Aligns content to the right */
+  justify-content: flex-end;
+  /* Aligns content to the right */
   margin-left: 1500px;
 
-  
+
 }
+
 /* Main Editor Container */
 .vs-code-editor-container {
   background-color: #1e1e1e;

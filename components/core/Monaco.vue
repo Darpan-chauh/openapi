@@ -2,19 +2,24 @@
   <div class="editor-wrapper">
     <div class="toolbar">
       <!-- Theme Toggle Button -->
-      <button
-        class="theme-button"
-        :class="{ 'dark-theme': isDarkTheme, 'light-theme': !isDarkTheme }"
-        @click="toggleTheme"
-      >
-        <v-icon left class="theme-icon">{{ isDarkTheme ? 'mdi-sun' : 'mdi-moon' }}</v-icon>
-        {{ isDarkTheme ? 'Light' : 'Dark' }} <!-- Button label toggles between 'Light' and 'Dark' -->
-      </button>
-      
-      <div class="font-buttons">
-        <button class="font-button" @click="increaseFontSize">+</button>
-        <button class="font-button" @click="decreaseFontSize">-</button>
-      </div>
+      <v-btn 
+    :color="isDarkTheme ? 'grey-darken-4' : 'amber-darken-2'" 
+    variant="flat" 
+    class="theme-toggle-btn"
+    @click="toggleTheme"
+  >
+    <v-icon class="me-2">{{ isDarkTheme ? 'mdi-weather-sunny' : 'mdi-weather-night' }}</v-icon>
+    {{ isDarkTheme ? 'Light' : 'Dark' }}
+  </v-btn>
+  <div class="font-buttons">
+    <v-btn @click="increaseFontSize" color="orange" icon>
+      <v-icon>mdi-plus</v-icon>
+    </v-btn>
+
+    <v-btn @click="decreaseFontSize" color="orange" icon>
+      <v-icon>mdi-minus</v-icon>
+    </v-btn>
+  </div>
     </div>
     
     <!-- Monaco Editor Container -->
@@ -138,39 +143,9 @@ function getCurrentTheme() {
   gap: 10px;
 }
 
-.theme-button {
-  padding: 10px 1px; 
-  border: none;
-  border-radius: 12px; /* Rounded corners */
-  background: linear-gradient(90deg, #e7583e, #f0692a); /* Gradient background */
-  color: white; /* Text color */
-  font-size: 18px; /* Slightly larger font for clarity */
-  font-weight: 700; /* Bold text */
-  cursor: pointer;
-  transition: all 0.3s ease; /* Smooth transition for interactions */
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2); /* Increased shadow for depth */
-  padding-right: 30px;
-  padding-left: 1px;
-}
 
-.theme-button.dark-theme {
-  background: linear-gradient(90deg, #303030, #616161); /* Darker background for dark theme */
-  color: #ffffff;
-}
 
-.theme-button.light-theme {
-  background: linear-gradient(90deg, #ffca6f, #ff914d); /* Lighter background for light theme */
-}
 
-.theme-button:hover {
-  background: linear-gradient(90deg, #f36828, #e64f34); /* Darker gradient on hover */
-  transform: translateY(-4px); /* Slight lift effect */
-}
-
-.theme-button:active {
-  background: linear-gradient(90deg, #f06423, #003d4d); /* Even darker gradient on click */
-  transform: translateY(0); /* Reset lift effect */
-}
 
 .font-button {
   padding: 12px 16px; /* Spacious buttons */

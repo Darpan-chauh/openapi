@@ -166,7 +166,7 @@ export default defineEventHandler(async (event) => {
     }
 
 
-    let token = queryParams[TOKEN] || "9d402345-fb9b-463c-acdb-c670c7d5d400";
+    let token = queryParams[TOKEN] || "6116516c-c541-48bc-b322-29cc8d0f677d";
     console.log("Token :" + token);
 
     let connectorUrl = CONNECTOR_URL + connectorId + "%22";
